@@ -38,7 +38,7 @@ def handle(client, address):
                 with open("uid.txt", "w") as id_file:
                     id_file.write(str(last_id))
                 
-                message.replace("[REGISTER]", "")
+                message = message.replace("[REGISTER]", "")
                 message = str(last_id) + " " + message + "\n"
                 
                 with open("users.txt", "a") as users_file:
