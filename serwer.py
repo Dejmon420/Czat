@@ -28,12 +28,12 @@ def handle(client, address):
             message = client.recv(1024).decode('utf-8')
             
             if message.startswith("[REGISTER]"):
-                with open("uid.txt", "r") as id_file:
-                    try:
+                try:
+                    with open("uid.txt", "r") as id_file:
                         last_id = int(id_file.readline())
                         last_id += 1
-                    except:
-                        last_id = 1
+                except:
+                    last_id = 1
                     
                 with open("uid.txt", "w") as id_file:
                     id_file.write(str(last_id))
