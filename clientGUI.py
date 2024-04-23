@@ -39,6 +39,18 @@ def sendRegisterInfo(login_widget, password_widget, username_widget):
     username = username_widget.get()
     
     if login != '' and password != '' and username != '':
+        if len(login) < 6 or len(login) > 16:
+            login_widget.delete(0, END)
+            return
+                
+        if len(password) < 6 or len(password) > 16:
+            password_widget.delete(0, END)
+            return
+                
+        if len(username) < 6 or len(username) > 16:
+            username_widget.delete(0, END)
+            return
+                
         for char in login:
             if char not in allowed_chars:
                 login_widget.delete(0, END)
@@ -55,8 +67,8 @@ def sendRegisterInfo(login_widget, password_widget, username_widget):
                 return
                 
         info = "[REGISTER]" + login + " " + password + " " + username
-        print(info)
         write(info)
+        
         logIn()
 
 #Interfejs rejestrowania użytkownika
@@ -153,7 +165,7 @@ def onEnterClick(box):
 #Funkcja odpowiadająca kliknięciu przycisku zamknięcia okna Tkinter
 def onClose():
     global running
-    running = not running
+    running = False
     app.destroy()
 
 #Stworzenie aplikacji tkinter
