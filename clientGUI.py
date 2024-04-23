@@ -54,7 +54,7 @@ def sendRegisterInfo(login_widget, password_widget, username_widget):
                 username_widget.delete(0, END)
                 return
                 
-        info = "[REGISTER]" + login + password + username
+        info = "[REGISTER]" + login + " " + password + " " + username
         print(info)
         write(info)
         logIn()
@@ -123,7 +123,7 @@ def logIn():
 #Funkcja wysyłająca wiadomość do serwera    
 def write(message):
     try:
-        client.send(message.encode())
+        client.send(message.encode('utf-8'))
     except:
         print("Failed to connect to the server.")
         client.close()
