@@ -28,7 +28,7 @@ def handle(client, address):
             message = client.recv(1024).decode('utf-8')
             if message.startswith("[REGISTER]"):
                 reg = open("users.txt", "a")
-                uid = open("uid.txt", "r+")
+                uid = open("uid.txt", "w")
                 last_id = int(uid.read())
                 print(last_id)  
                 reg.writelines(message)

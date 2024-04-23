@@ -91,7 +91,7 @@ def mainApp():
     review_box.configure(state='disabled')
     
     #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
-    message_box = Text(main_frame, height = 1)
+    message_box = Entry(main_frame)
     message_box.grid(column = 1, row = 1)
     
     #Przypisanie funkcji onEnterClick do klawisza enter
@@ -113,8 +113,8 @@ def logIn():
     Label(main_frame, text = "Hasło").grid(column = 0, row = 1, sticky = "w")
     
     #Pola do wpisywania informacji
-    login = Text(main_frame, width = 30, height = 1).grid(column = 1, row = 0, columnspan = 2)
-    password = Text(main_frame, width = 30, height = 1).grid(column = 1, row = 1, columnspan = 2)
+    login = Entry(main_frame, width = 30).grid(column = 1, row = 0, columnspan = 2)
+    password = Entry(main_frame, width = 30).grid(column = 1, row = 1, columnspan = 2)
     
     #Przyciski
     Button(main_frame, text = "Zaloguj", command = mainApp).grid(column = 1, row = 2, sticky = "w")
@@ -146,8 +146,8 @@ def receive(box):
 
 #Funkcja odpowiadająca za kliknięcie przycisku enter
 def onEnterClick(box):
-    write(box.get("1.0", END))
-    box.delete('1.0', END)
+    write(box.get())
+    box.delete(0, END)
     return 'break'
 
 #Funkcja odpowiadająca kliknięciu przycisku zamknięcia okna Tkinter
