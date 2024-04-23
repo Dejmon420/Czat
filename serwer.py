@@ -26,14 +26,23 @@ def handle(client, address):
     while True:
         try:
             message = client.recv(1024).decode('utf-8')
+            
             if message.startswith("[REGISTER]"):
-                reg = open("users.txt", "a")
-                uid = open("uid.txt", "w")
-                last_id = int(uid.read())
-                print(last_id)  
-                reg.writelines(message)
-                reg.close()
-                uid.close()
+                with open("uid.txt", "r") as id_file:
+                    try:
+                        last_id = int(id_file.readline())
+                        last_id += 1
+                    except:
+                        last_id = 1
+                    
+                with open("uid.txt", "w") as id_file:
+                    id_file.write(str(last_id))
+                
+                message.replace("[REGISTER]", "")
+                message = str(last_id) + " " + message + "\n"
+                
+                with open("users.txt", ) as users_file:
+                    users.write(message)
                 
             else:
                 broadcast(message, client, address)
