@@ -19,6 +19,7 @@ def reloadUsers():
             for line in users_file.readlines():
                 user = {}
                 line = line.rstrip("\n")
+                line = line.split()
                 user["id"] = line[0]
                 user["login"] = line[1]
                 user["password"] = line[2]
