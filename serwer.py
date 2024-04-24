@@ -13,7 +13,7 @@ clients = []
 users = []
 
 def reloadUsers():
-    users = [] 
+    global users = []
     try:
         with open("users.txt", "r") as users_file:
             for line in users_file.readlines():
@@ -66,6 +66,7 @@ def handle(client, address):
                 reloadUsers()
             
             elif message.startswith("[LOGIN]"):
+                global users
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
                 print(message)
