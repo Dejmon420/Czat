@@ -10,6 +10,7 @@ server.bind((HOST, PORT))
 server.listen()
 
 clients = []
+users = []
 
 def reloadUsers():
     users = [] 
@@ -68,9 +69,9 @@ def handle(client, address):
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
                 print(message)
-                for client in clients:
-                    if message[0] == client["login"]:
-                        if message[1] == client["password"]:
+                for user in users:
+                    if message[0] == user["login"]:
+                        if message[1] == user["password"]:
                             print("potwierdzono")
                             client.send("[OK]".encode("utf-8"))
                             print("wysłano")
