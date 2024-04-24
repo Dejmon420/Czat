@@ -13,7 +13,8 @@ clients = []
 users = []
 
 def reloadUsers():
-    global users = []
+    global users
+    users = []
     try:
         with open("users.txt", "r") as users_file:
             for line in users_file.readlines():
