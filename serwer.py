@@ -67,10 +67,13 @@ def handle(client, address):
             elif message.startswith("[LOGIN]"):
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
+                print(message)
                 for client in clients:
                     if message[0] == client["login"]:
                         if message[1] == client["password"]:
+                            print("potwierdzono")
                             client.send("[OK]".encode("utf-8"))
+                            print("wysłano")
                             break
             
             else:
