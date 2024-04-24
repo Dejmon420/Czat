@@ -10,6 +10,12 @@ server.bind((HOST, PORT))
 server.listen()
 
 clients = []
+users = []
+
+try:
+    with open("users.txt", "r") as users_file:
+        for line in users_file.readlines():
+            print(line)
 
 def broadcast(message, sender, address, send_address=True):
     for client in clients:
