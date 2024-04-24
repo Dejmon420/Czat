@@ -10,14 +10,24 @@ server.bind((HOST, PORT))
 server.listen()
 
 clients = []
-users = []
 
-try:
-    with open("users.txt", "r") as users_file:
-        for line in users_file.readlines():
-            print(line)
-except:
-    pass
+def reloadUsers():
+    users = []
+    
+    try:
+        with open("users.txt", "r") as users_file:
+            for line in users_file.readlines():
+                user = {}
+                line = line.rstrip("\n")
+                user["id"] = line[0]
+                user["login"] = line[1]
+                user["password"] = line[2]
+                user["username"] = line[3]
+                users.append(user)
+            
+            print(users)
+    except:
+        pass
 
 def broadcast(message, sender, address, send_address=True):
     for client in clients:
@@ -51,6 +61,8 @@ def handle(client, address):
                 
                 with open("users.txt", "a") as users_file:
                     users_file.write(message)
+                    
+                reloadUsers()
                 
             else:
                 broadcast(message, client, address)
@@ -78,4 +90,5 @@ def receive():
         thread.start()
              
 print("Server running.")
+reloadUsers()
 receive()
