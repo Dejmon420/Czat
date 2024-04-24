@@ -13,7 +13,6 @@ PORT = 2000
 #Nawiązywanie połączenia między klientem a serwerem
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
-client.setblocking(0)
 
 user = ""
 
@@ -95,6 +94,7 @@ def register():
 #Główny interfejs aplikacji
 def mainApp():
     clearMainFrame()
+    client.setblocking(0)
     
     #Ramka znajomych
     friends_frame = Frame(main_frame, width = 200).grid(column = 0, row = 0, rowspan = 2)
@@ -128,8 +128,8 @@ def sendLogInInfo(login_widget, password_widget):
     
     response = client.recv(1024)
     
+    print(response.decode("utf-8"))
     if response.decode("utf-8") == "[OK]":
-        user = username
         mainApp()
     
 
