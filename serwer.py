@@ -12,8 +12,7 @@ server.listen()
 clients = []
 
 def reloadUsers():
-    users = []
-    
+    users = [] 
     try:
         with open("users.txt", "r") as users_file:
             for line in users_file.readlines():
@@ -64,7 +63,16 @@ def handle(client, address):
                     users_file.write(message)
                     
                 reloadUsers()
-                
+            
+            elif message.startswith("[LOGIN]"):
+                message = message.replace("[LOGIN]", "")
+                message = message.split()
+                for client in clients:
+                    if message[0] == client["login"]:
+                        if message[1] == client["password"]:
+                            client.send("[OK]".encode("utf-8"))
+                            break
+            
             else:
                 broadcast(message, client, address)
         except:
@@ -73,6 +81,7 @@ def handle(client, address):
                 client.close()
                 broadcast(f"{address[0]} disconnected from the server.\n", client, address, False)
                 print(f"{address[0]} disconnected from the server.")
+                break
         
 def receive():
     while True:

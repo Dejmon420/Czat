@@ -15,6 +15,8 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
 client.setblocking(0)
 
+user = ""
+
 #Funkcja otwierająca dialog wyboru pliku
 def fileDialog():
     filedialog.askopenfilename(title = "Wybierz plik do przesłania")
@@ -117,6 +119,20 @@ def mainApp():
     recv_thread = threading.Thread(target = lambda: receive(review_box))
     recv_thread.start()
 
+def sendLogInInfo(login_widget, password_widget):
+    login = login_widget.get()
+    password = password_widget.get()
+    
+    info = "[LOGIN]" + login + " " + password
+    write(info)
+    
+    response = client.recv(1024)
+    
+    if response.decode("utf-8") == "[OK]":
+        user = username
+        mainApp()
+    
+
 #Interfejs logowania użytkownika
 def logIn():
     clearMainFrame()
@@ -125,11 +141,13 @@ def logIn():
     Label(main_frame, text = "Hasło").grid(column = 0, row = 1, sticky = "w")
     
     #Pola do wpisywania informacji
-    login = Entry(main_frame, width = 30).grid(column = 1, row = 0, columnspan = 2)
-    password = Entry(main_frame, width = 30).grid(column = 1, row = 1, columnspan = 2)
+    login = Entry(main_frame, width = 30)
+    login.grid(column = 1, row = 0, columnspan = 2)
+    password = Entry(main_frame, width = 30)
+    password.grid(column = 1, row = 1, columnspan = 2)
     
     #Przyciski
-    Button(main_frame, text = "Zaloguj", command = mainApp).grid(column = 1, row = 2, sticky = "w")
+    Button(main_frame, text = "Zaloguj",command = lambda: sendLogInInfo(login, password)).grid(column = 1, row = 2, sticky = "w")
     Button(main_frame, text = "Zarejestruj", command = register).grid(column = 2, row = 2, sticky = "e")
 
 #Funkcja wysyłająca wiadomość do serwera    
