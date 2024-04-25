@@ -26,12 +26,10 @@ def reloadUsers():
                 user["password"] = line[2]
                 user["username"] = line[3]
                 users.append(user)
-            
-            print(users)
     except:
         pass
 
-def broadcast(message, sender, address, send_address=True):
+def broadcast(message, sender, address, send_address = True):
     for client in clients:
         if client is not sender:
             if send_address:
@@ -97,7 +95,6 @@ def receive():
         clients.append(client)
         
         broadcast(f"{str(address[0])} connected to the server.\n", client, address, False)
-        client.send(f"Connected to {str(HOST)}\n".encode('utf-8'))
         
         thread = threading.Thread(target=handle, args=(client, address))
         thread.start()
