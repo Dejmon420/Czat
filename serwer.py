@@ -86,7 +86,7 @@ def handle(client, address):
             if client in clients:
                 clients.remove(client)
                 client.close()
-                broadcast(f"{address[0]} disconnected from the server.\n", client, address, False)
+                broadcast(username + " disconnected from the server.", client, username, False)
                 print(username + " disconnected from the server.")
                 break
         
@@ -100,7 +100,7 @@ def receive():
         print(f"{str(address[0])} connected to the server.")
         clients.append(client)
         
-        thread = threading.Thread(target=handle, args=(client, address))
+        thread = threading.Thread(target = handle, args = (client, address))
         thread.start()
              
 print("Server running.")
