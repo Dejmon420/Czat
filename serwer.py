@@ -74,7 +74,6 @@ def handle(client, address):
                             client.send("[OK]".encode("utf-8"))
                             break
                 client.send("[ERROR]".encode("utf-8"))
-                break
             
             else:
                 broadcast(message, client, address)
