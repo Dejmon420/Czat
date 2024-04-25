@@ -106,7 +106,7 @@ def mainApp():
     
     #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
     message_box = Entry(main_frame)
-    message_box.grid(column = 1, row = 1)
+    message_box.grid(column = 1, row = 1, sticky = "we")
     
     #Przypisanie funkcji onEnterClick do klawisza enter
     app.bind('<Return>', lambda e: onEnterClick(message_box))
@@ -123,14 +123,17 @@ def sendLogInInfo(login_widget, password_widget):
     login = login_widget.get()
     password = password_widget.get()
     
-    info = "[LOGIN]" + login + " " + password
-    write(info)
+    if login != "" and password != "":
+        info = "[LOGIN]" + login + " " + password
+        write(info)
     
-    response = client.recv(1024)
+        response = client.recv(1024)
     
-    print(response.decode("utf-8"))
-    if response.decode("utf-8") == "[OK]":
-        mainApp()
+        print(response.decode("utf-8"))
+        if response.decode("utf-8") == "[OK]":
+            mainApp()
+        else:
+            return
     
 
 #Interfejs logowania użytkownika
@@ -165,11 +168,12 @@ def receive(box):
         try:
             message = client.recv(1024)
             message = message.decode('utf-8')
-            if message.startswith("[OK]"):
+            if message.startswith("[OK]") or message.startswith("[ERROR]"):
                 continue
             else:
                 box.configure(state='normal')
                 box.insert(END, message)
+                box.insert(END, "\n")
                 box.configure(state='disabled')
         except Exception as e:
             if e.errno == errno.WSAEWOULDBLOCK:
