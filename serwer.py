@@ -29,11 +29,11 @@ def reloadUsers():
     except:
         pass
 
-def broadcast(message, sender, address, send_address = True):
+def broadcast(message, sender, username, send_address = True):
     for client in clients:
         if client is not sender:
             if send_address:
-                client.send(f"<{str(address[0])}>    {message}".encode('utf-8'))
+                client.send(f"<{username}>    {message}".encode('utf-8'))
             else:
                 client.send(message.encode('utf-8'))
         else:
@@ -42,6 +42,7 @@ def broadcast(message, sender, address, send_address = True):
 
 def handle(client, address):
     while True:
+        username = ''
         try:
             message = client.recv(1024).decode('utf-8')
             
@@ -72,11 +73,12 @@ def handle(client, address):
                     if message[0] == user["login"]:
                         if message[1] == user["password"]:
                             client.send("[OK]".encode("utf-8"))
+                            username = user["username"]
                             break
                 client.send("[ERROR]".encode("utf-8"))
             
             else:
-                broadcast(message, client, address)
+                broadcast(message, client, username)
         except:
             if client in clients:
                 clients.remove(client)
