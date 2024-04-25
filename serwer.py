@@ -73,6 +73,7 @@ def handle(client, address):
                         if message[1] == user["password"]:
                             client.send("[OK]".encode("utf-8"))
                             break
+                break
             
             else:
                 broadcast(message, client, address)
