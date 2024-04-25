@@ -41,8 +41,8 @@ def broadcast(message, sender, username, send_address = True):
                 client.send(f"<YOU>    {message}".encode('utf-8'))
 
 def handle(client, address):
+    username = ''
     while True:
-        username = ''
         try:
             message = client.recv(1024).decode('utf-8')
             
