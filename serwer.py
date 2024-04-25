@@ -67,15 +67,18 @@ def handle(client, address):
             
             elif message.startswith("[LOGIN]"):
                 global users
+                send_error = True
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
                 for user in users:
                     if message[0] == user["login"]:
                         if message[1] == user["password"]:
-                            client.send("[OK]".encode("utf-8"))
                             username = user["username"]
+                            send_error = False
+                            client.send("[OK]".encode("utf-8"))
                             break
-                client.send("[ERROR]".encode("utf-8"))
+                if send_error:
+                    client.send("[ERROR]".encode("utf-8"))
             
             else:
                 broadcast(message, client, username)
