@@ -40,15 +40,15 @@ def sendRegisterInfo(login_widget, password_widget, username_widget):
     username = username_widget.get()
     
     if login != '' and password != '' and username != '':
-        if len(login) < 6 or len(login) > 16:
+        if len(login) < 5 or len(login) > 16:
             login_widget.delete(0, END)
             return
                 
-        if len(password) < 6 or len(password) > 16:
+        if len(password) < 5 or len(password) > 16:
             password_widget.delete(0, END)
             return
                 
-        if len(username) < 6 or len(username) > 16:
+        if len(username) < 5 or len(username) > 16:
             username_widget.delete(0, END)
             return
                 
@@ -164,9 +164,13 @@ def receive(box):
     while running:
         try:
             message = client.recv(1024)
-            box.configure(state='normal')
-            box.insert(END, message.decode('utf-8'))
-            box.configure(state='disabled')
+            message = message.decode('utf-8')
+            if message.startswith("[OK]"):
+                continue
+            else:
+                box.configure(state='normal')
+                box.insert(END, message)
+                box.configure(state='disabled')
         except Exception as e:
             if e.errno == errno.WSAEWOULDBLOCK:
                 continue

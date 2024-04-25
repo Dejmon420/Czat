@@ -70,13 +70,10 @@ def handle(client, address):
                 global users
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
-                print(message)
                 for user in users:
                     if message[0] == user["login"]:
                         if message[1] == user["password"]:
-                            print("potwierdzono")
                             client.send("[OK]".encode("utf-8"))
-                            print("wysłano")
                             break
             
             else:
