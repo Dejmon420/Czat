@@ -33,7 +33,7 @@ def broadcast(message, sender, username, send_address = True):
     for client in clients:
         if client is not sender:
             if send_address:
-                client.send(f"<{username}>    {message}".encode('utf-8'))
+                client.send(("<" + username + ">" + "   " + message).encode('utf-8'))
             else:
                 client.send(message.encode('utf-8'))
         else:
@@ -87,7 +87,7 @@ def handle(client, address):
                 clients.remove(client)
                 client.close()
                 broadcast(f"{address[0]} disconnected from the server.\n", client, address, False)
-                print(f"{username} disconnected from the server.")
+                print(username + " disconnected from the server.")
                 break
         
 def receive():
