@@ -92,7 +92,7 @@ def handle(client, address):
                 broadcast("disconnected from the server.", client, username)
                 print(username + " disconnected from the server.")
                 client.close()
-                break
+                return
         
 def receive():
     while True:
