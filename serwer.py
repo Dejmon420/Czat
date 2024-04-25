@@ -10,6 +10,7 @@ server.bind((HOST, PORT))
 server.listen()
 
 clients = []
+logged_in = []
 users = []
 
 def reloadUsers():
@@ -30,7 +31,7 @@ def reloadUsers():
         pass
 
 def broadcast(message, sender, username, send_address = True):
-    for client in clients:
+    for client in logged_in:
         if client is not sender:
             if send_address:
                 client.send(("<" + username + ">" + "   " + message).encode('utf-8'))
@@ -75,6 +76,7 @@ def handle(client, address):
                         if message[1] == user["password"]:
                             username = user["username"]
                             send_error = False
+                            logged_in.append(client)
                             client.send("[OK]".encode("utf-8"))
                             break
                 if send_error:
