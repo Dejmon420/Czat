@@ -83,6 +83,12 @@ def handle(client, address):
                     client.send("[ERROR]".encode("utf-8"))
             
             elif not message:
+                if client in clients:
+                    clients.remove(client)
+                    if client in logged_in:
+                        logged_in.remove(client)
+                    print(username + " disconnected from the server.")
+                    client.close()
                 break
                 
             else:
