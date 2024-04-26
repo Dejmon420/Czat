@@ -47,6 +47,9 @@ def handle(client, address):
         try:
             message = client.recv(1024).decode('utf-8')
             
+            if not message:
+                break
+            
             if message.startswith("[REGISTER]"):
                 try:
                     with open("uid.txt", "r") as id_file:
