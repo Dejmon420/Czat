@@ -47,9 +47,6 @@ def handle(client, address):
         try:
             message = client.recv(1024).decode('utf-8')
             
-            if not message:
-                break
-            
             if message.startswith("[REGISTER]"):
                 try:
                     with open("uid.txt", "r") as id_file:
@@ -85,6 +82,9 @@ def handle(client, address):
                 if send_error:
                     client.send("[ERROR]".encode("utf-8"))
             
+            elif not message:
+                break
+                
             else:
                 broadcast(message, client, username)
         except:
