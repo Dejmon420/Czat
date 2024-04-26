@@ -87,7 +87,7 @@ def handle(client, address):
                     clients.remove(client)
                     if client in logged_in:
                         logged_in.remove(client)
-                    print(username + " disconnected from the server.")
+                    print(address[0] + " disconnected from the server.")
                     client.close()
                 break
                 
