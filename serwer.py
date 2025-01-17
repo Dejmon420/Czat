@@ -138,6 +138,7 @@ class Server:
                         while data:
                             client.send(data)
                             data = file.read(PACKET_SIZE)
+                            print(data)
         
                         client.send(b"END_FILE")
                 

@@ -50,6 +50,7 @@ class Client():
         while data:
             client.send(data)
             data = file.read(PACKET_SIZE)
+            print(data)
         
         client.send(b"END_FILE")
         file.close()
@@ -227,36 +228,41 @@ class Client():
         while self.running:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
-                if message.startswith("[OK]") or message.startswith("[ERROR]"):
-                    continue
-                    
-                elif message.startswith("[LIST]"):
-                    message = message.replace("[LIST]", "")
-                    self.filenames.append(message)
-                    combo.configure(values = self.filenames)
-                    
-                elif message.startswith("[FILE]"):
-                    filename = message.replace("[FILE]", "")
-                    with open(filename, "wb") as file:
-                        data = client.recv(PACKET_SIZE)
-
-                        while data != b"END_FILE":
-                            file.write(data)
-                            data = client.recv(PACKET_SIZE)
-                else:
-                    box.configure(state='normal')
-                    box.insert(END, message)
-                    box.insert(END, "\n")
-                    box.yview("end")
-                    box.configure(state='disabled')
-                    
+                
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
                 else:
+                    print(brek)
                     client.close()
                     break
-
+                        
+                
+            if message.startswith("[OK]") or message.startswith("[ERROR]"):
+                continue
+                    
+            elif message.startswith("[LIST]"):
+                message = message.replace("[LIST]", "")
+                self.filenames.append(message)
+                combo.configure(values = self.filenames)
+                    
+            elif message.startswith("[FILE]"):
+                filename = message.replace("[FILE]", "")
+                with open(filename, "wb") as file:
+                    data = ""
+                    while data != b"END_FILE":
+                        try:
+                            data = client.recv(PACKET_SIZE)
+                            file.write(data)
+                        except:
+                            continue
+            else:
+                box.configure(state='normal')
+                box.insert(END, message)
+                box.insert(END, "\n")
+                box.yview("end")
+                box.configure(state='disabled')
+                    
     #Funkcja odpowiadająca za kliknięcie przycisku enter
     def onEnterClick(self, box):
         self.write(box.get())
