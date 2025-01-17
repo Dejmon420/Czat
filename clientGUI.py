@@ -249,12 +249,13 @@ class Client():
             elif message.startswith("[FILE]"):
                 filename = message.replace("[FILE]", "")
                 with open(filename, "wb") as file:
-                    data = ""
-                    while data != b"END_FILE":
+                    while True:
                         try:
                             data = client.recv(PACKET_SIZE)
-                            file.write(data)
-                        except:
+                            if data == b"END_FILE":  # Jeśli otrzymano znacznik końca pliku, przerwij pętlę
+                                break
+                            file.write(data)  # Zapisuj tylko rzeczywiste dane
+                        except Exception as e:
                             continue
             else:
                 box.configure(state='normal')

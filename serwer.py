@@ -132,12 +132,13 @@ class Server:
                     filename = message.replace("[FILEREQUEST]", "")
                     filedir = ".\\files\\" + filename
                     with open(filedir, "rb") as file:
-                        data = file.read(PACKET_SIZE)
                         client.send(("[FILE]" + filename).encode('utf-8'))
-        
+                        print(data)
+                        data = " "
                         while data:
-                            client.send(data)
                             data = file.read(PACKET_SIZE)
+                            client.send(data)
+                            sleep(0.05)
                             print(data)
         
                         client.send(b"END_FILE")
