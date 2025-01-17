@@ -1,5 +1,6 @@
 import socket
 import threading
+import os
 
 HOST = '192.168.1.24'
 PORT = 2000
@@ -17,6 +18,8 @@ class Server:
         
         self.reloadUsers()
         self.receive()
+        
+        self.files = os.listdir(".\\files")
 
     def reloadUsers(self):
         self.users = []
@@ -34,16 +37,9 @@ class Server:
         except:
             pass
 
-    def broadcast(self, message, sender, username, send_address = True):
+    def broadcast(self, message, sender, username):
         for client in self.logged_in:
-            if client is not sender:
-                if send_address:
-                    client.send(("<" + username + ">" + "   " + message).encode('utf-8'))
-                else:
-                    client.send(message.encode('utf-8'))
-            else:
-                if send_address:
-                    client.send(f"<YOU>    {message}".encode('utf-8'))
+            client.send((username + ": " + message).encode('utf-8'))
 
     def handle(self, client, address):
         username = ''
@@ -99,24 +95,23 @@ class Server:
                 
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
-                    with open(filename, "wb") as image_file:
-                        image_data = client.recv(PACKET_SIZE)
+                    self.files.append(filename)
+                    filename = ".\\files\\" + filename
+                    with open(filename, "wb") as file:
+                        data = client.recv(PACKET_SIZE)
 
-                        while image_data != b"END_FILE":
-                            image_file.write(image_data)
-                            image_data = client.recv(PACKET_SIZE)
+                        while data != b"END_FILE":
+                            file.write(data)
+                            data = client.recv(PACKET_SIZE)
                 
-                elif message.startswith("[REQ]"):
-                    message = message.replace("[REQ]", "")
-                    send_error = True
-                    for user in self.users:
-                        if user["username"] == message:
-                            send_error = False
-                            break                     
-                    if send_error:
-                        client.send("[ERROR]".encode("utf-8"))
-                    else:
-                        client.send("[OK]".encode("utf-8"))
+                elif message.startswith("[LOAD]"):
+                    message = message.replace("[LOAD]", "")
+                    try:
+                        with open("chat.txt", "r") as file:
+                            for line in file:
+                                client.send(line.encode("utf-8"))              
+                    except:
+                        print("No file")
                 
                 elif not message:
                     if client in self.clients:
@@ -128,7 +123,7 @@ class Server:
                     break
                     
                 else:
-                    with open("global.txt", "a") as file:
+                    with open("chat.txt", "a") as file:
                         file.write(username + ": " + message + "\n")
                     self.broadcast(message, client, username)
             except:
@@ -153,6 +148,6 @@ class Server:
             thread = threading.Thread(target = self.handle, args = (client, address))
             thread.start()
 
-if __name__ == "__main__":          
+if __name__ == "__main__":
     print("Server running.")
     server_app = Server()

@@ -129,6 +129,7 @@ class Client():
     def mainApp(self):
         self.clearMainFrame()
         client.setblocking(0)
+        self.write("[LOAD]")
         
         #Ramka znajomych
         friends_frame = Frame(self.main_frame, width = 200)
@@ -141,6 +142,10 @@ class Client():
         review_box.grid(column = 1, row = 0, sticky = "swen", columnspan = 3)
         review_box.configure(state='disabled')
         
+        scrollbar = ttk.Scrollbar(text_frame, orient = 'vertical', command = review_box.yview)
+        scrollbar.grid(row = 0, column = 3, sticky = "nse")
+        review_box['yscrollcommand'] = scrollbar.set
+        
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
         message_box = Entry(text_frame, width = 110)
         message_box.grid(column = 1, row = 1, sticky = "we")
@@ -151,8 +156,10 @@ class Client():
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
         Button(text_frame, text = "Wybierz plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
-        Button(friends_frame, text = "Pobierz pliki", command = self.downloadFiles).grid(row = 1)
-        Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 0)
+        Button(friends_frame, text = "Pobierz plik", command = self.downloadFiles).grid(row = 1)
+        combo_box = ttk.Combobox(friends_frame)
+        combo_box.grid(row = 0)
+        #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
         recv_thread = threading.Thread(target = lambda: self.receive(review_box))
@@ -160,14 +167,6 @@ class Client():
     
     def downloadFiles(self):
         pass
-    
-    def requestNewConversation(self, name):
-        request = "[REQ]" + name
-        self.write(request)
-        client.setblocking(1)
-        response = client.recv(PACKET_SIZE).decode("utf-8")
-        print(response)
-        client.setblocking(0)
     
     def newConversation(self):
         pop = Toplevel(self.app)
@@ -241,9 +240,6 @@ class Client():
                 else:
                     client.close()
                     break
-
-    def addConversation(self):
-        pass
 
     #Funkcja odpowiadająca za kliknięcie przycisku enter
     def onEnterClick(self, box):
