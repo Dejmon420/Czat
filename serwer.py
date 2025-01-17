@@ -1,6 +1,7 @@
 import socket
 import threading
 import os
+from time import sleep
 
 HOST = '192.168.1.24'
 PORT = 2000
@@ -15,11 +16,10 @@ class Server:
         self.clients = []
         self.logged_in = []
         self.users = []
+        self.files = os.listdir(".\\files")
         
         self.reloadUsers()
         self.receive()
-        
-        self.files = os.listdir(".\\files")
 
     def reloadUsers(self):
         self.users = []
@@ -96,22 +96,42 @@ class Server:
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
                     self.files.append(filename)
-                    filename = ".\\files\\" + filename
-                    with open(filename, "wb") as file:
+                    filedir = ".\\files\\" + filename
+                    with open(filedir, "wb") as file:
                         data = client.recv(PACKET_SIZE)
 
                         while data != b"END_FILE":
                             file.write(data)
                             data = client.recv(PACKET_SIZE)
+                            
+                    for client in self.logged_in:
+                        client.send(("[LIST]" + filename).encode('utf-8'))
                 
                 elif message.startswith("[LOAD]"):
                     message = message.replace("[LOAD]", "")
                     try:
                         with open("chat.txt", "r") as file:
                             for line in file:
-                                client.send(line.encode("utf-8"))              
+                                client.send(line.encode('utf-8'))
+                        for f in self.files:
+                            sleep(0.05)
+                            client.send(("[LIST]" + f).encode('utf-8'))
+                            sleep(0.05)
                     except:
                         print("No file")
+                        
+                elif message.startswith("[FILEREQUEST]"):
+                    filename = message.replace("[FILEREQUEST]", "")
+                    filedir = ".\\files\\" + filename
+                    with open(filedir, "rb") as file:
+                        data = file.read(PACKET_SIZE)
+                        client.send(("[FILE]" + filename).encode('utf-8'))
+        
+                        while data:
+                            client.send(data)
+                            data = file.read(PACKET_SIZE)
+        
+                        client.send(b"END_FILE")
                 
                 elif not message:
                     if client in self.clients:

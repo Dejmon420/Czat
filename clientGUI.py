@@ -19,6 +19,7 @@ class Client():
     def __init__(self):
         self.user = ""
         self.running = True
+        self.filenames = []
         
         #Tworzenie aplikacji tkinter
         self.app = Tk()
@@ -44,12 +45,12 @@ class Client():
         
         file = open(filepath, "rb")
         
-        image_data = file.read(PACKET_SIZE)
+        data = file.read(PACKET_SIZE)
         self.write("[FILE]" + filename)
         
-        while image_data:
-            client.send(image_data)
-            image_data = file.read(PACKET_SIZE)
+        while data:
+            client.send(data)
+            data = file.read(PACKET_SIZE)
         
         client.send(b"END_FILE")
         file.close()
@@ -146,6 +147,9 @@ class Client():
         scrollbar.grid(row = 0, column = 3, sticky = "nse")
         review_box['yscrollcommand'] = scrollbar.set
         
+        combo_box = ttk.Combobox(friends_frame)
+        combo_box.grid(row = 0)
+        
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
         message_box = Entry(text_frame, width = 110)
         message_box.grid(column = 1, row = 1, sticky = "we")
@@ -156,17 +160,15 @@ class Client():
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
         Button(text_frame, text = "Wybierz plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
-        Button(friends_frame, text = "Pobierz plik", command = self.downloadFiles).grid(row = 1)
-        combo_box = ttk.Combobox(friends_frame)
-        combo_box.grid(row = 0)
+        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(combo_box.get())).grid(row = 1)
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
-        recv_thread = threading.Thread(target = lambda: self.receive(review_box))
+        recv_thread = threading.Thread(target = lambda: self.receive(review_box, combo_box))
         recv_thread.start()
     
-    def downloadFiles(self):
-        pass
+    def downloadFiles(self, filename):
+        self.write("[FILEREQUEST]" + filename)
     
     def newConversation(self):
         pop = Toplevel(self.app)
@@ -222,18 +224,37 @@ class Client():
             client.close()
 
     #Funkcja odbierająca informacje od serwera    
-    def receive(self, box):
+    def receive(self, box, combo):
         while self.running:
             try:
-                message = client.recv(PACKET_SIZE)
-                message = message.decode('utf-8')
+                message = client.recv(PACKET_SIZE).decode('utf-8')
+                print(message)
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
+                    
+                elif message.startswith("[LIST]"):
+                    message = message.replace("[LIST]", "")
+                    self.filenames.append(message)
+                    combo.configure(values = self.filenames)
+                    print(self.filenames)
+                    
+                elif message.startswith("[FILE]"):
+                    filename = message.replace("[FILE]", "")
+                    with open(filename, "wb") as file:
+                        data = client.recv(PACKET_SIZE)
+
+                        while data != b"END_FILE":
+                            print(data)
+                            file.write(data)
+                            data = client.recv(PACKET_SIZE)
+                        print(data)    
                 else:
                     box.configure(state='normal')
                     box.insert(END, message)
                     box.insert(END, "\n")
+                    box.yview("end")
                     box.configure(state='disabled')
+                    
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
