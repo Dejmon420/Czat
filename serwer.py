@@ -47,6 +47,7 @@ class Server:
 
     def handle(self, client, address):
         username = ''
+        userid = ''
         while True:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
@@ -87,9 +88,11 @@ class Server:
                         if message[0] == user["login"]:
                             if message[1] == user["password"]:
                                 username = user["username"]
+                                userid = user["id"]
                                 send_error = False
                                 self.logged_in.append(client)
                                 client.send("[OK]".encode("utf-8"))
+                                print(f"client {username} logged in with id {userid}")
                                 break
                     if send_error:
                         client.send("[ERROR]".encode("utf-8"))
@@ -103,6 +106,18 @@ class Server:
                             image_file.write(image_data)
                             image_data = client.recv(PACKET_SIZE)
                 
+                elif message.startswith("[REQ]"):
+                    message = message.replace("[REQ]", "")
+                    send_error = True
+                    for user in self.users:
+                        if user["username"] == message:
+                            send_error = False
+                            break                     
+                    if send_error:
+                        client.send("[ERROR]".encode("utf-8"))
+                    else:
+                        client.send("[OK]".encode("utf-8"))
+                
                 elif not message:
                     if client in self.clients:
                         self.clients.remove(client)
@@ -113,6 +128,8 @@ class Server:
                     break
                     
                 else:
+                    with open("global.txt", "a") as file:
+                        file.write(username + ": " + message + "\n")
                     self.broadcast(message, client, username)
             except:
                 if client in self.clients:

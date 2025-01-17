@@ -131,28 +131,54 @@ class Client():
         client.setblocking(0)
         
         #Ramka znajomych
-        friends_frame = Frame(self.main_frame, width = 200).grid(column = 0, row = 0, rowspan = 2)
+        friends_frame = Frame(self.main_frame, width = 200)
+        friends_frame.grid(column = 0, row = 0, sticky = "n")
+        text_frame = Frame(self.main_frame)
+        text_frame.grid(column = 1, row = 0)
         
         #Widżet Text, w którym wyświetlane są wiadomości odebrane z serwera
-        review_box = Text(self.main_frame)
+        review_box = Text(text_frame)
         review_box.grid(column = 1, row = 0, sticky = "swen", columnspan = 3)
         review_box.configure(state='disabled')
         
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
-        message_box = Entry(self.main_frame, width = 110)
+        message_box = Entry(text_frame, width = 110)
         message_box.grid(column = 1, row = 1, sticky = "we")
         
         #Przypisanie funkcji onEnterClick do klawisza enter
         self.app.bind('<Return>', lambda e: self.onEnterClick(message_box))
         
         #Przyciski
-        Button(self.main_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
-        Button(self.main_frame, text = "Wybierz plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
+        Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
+        Button(text_frame, text = "Wybierz plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
+        Button(friends_frame, text = "Pobierz pliki", command = self.downloadFiles).grid(row = 1)
+        Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 0)
         
         #Wątek odbierający wiadomości z serwera
         recv_thread = threading.Thread(target = lambda: self.receive(review_box))
         recv_thread.start()
-
+    
+    def downloadFiles(self):
+        pass
+    
+    def requestNewConversation(self, name):
+        request = "[REQ]" + name
+        self.write(request)
+        client.setblocking(1)
+        response = client.recv(PACKET_SIZE).decode("utf-8")
+        print(response)
+        client.setblocking(0)
+    
+    def newConversation(self):
+        pop = Toplevel(self.app)
+        pop.title("Nowa konwersacja")
+        pop.resizable(False, False)
+        pop.grab_set()
+        Label(pop, text = "Wpisz nazwę użytkownika: ").grid(column = 0, row = 0)
+        user_entry = Entry(pop, width = 30)
+        user_entry.grid(column = 1, row = 0)
+        Button(pop, text = "Zatwierdź", command = lambda: self.requestNewConversation(user_entry.get())).grid(columnspan = 2, row = 1)
+        
     def sendLogInInfo(self, login_widget, password_widget):
         login = login_widget.get()
         password = password_widget.get()
@@ -215,6 +241,9 @@ class Client():
                 else:
                     client.close()
                     break
+
+    def addConversation(self):
+        pass
 
     #Funkcja odpowiadająca za kliknięcie przycisku enter
     def onEnterClick(self, box):
