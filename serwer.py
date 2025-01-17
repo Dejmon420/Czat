@@ -11,6 +11,10 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
 
+path = ".\\files\\"
+if not os.path.exists(path):
+    os.makedirs(path)
+
 class Server:
     def __init__(self):
         self.clients = []
@@ -38,6 +42,9 @@ class Server:
             pass
 
     def broadcast(self, message, sender, username):
+        with open("chat.txt", "a") as file:
+            file.write(username + ": " + message + "\n")
+            
         for client in self.logged_in:
             client.send((username + ": " + message).encode('utf-8'))
 
@@ -47,7 +54,6 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
-                print(message)
                 
                 if message.startswith("[REGISTER]"):
                     allow = True
@@ -106,17 +112,19 @@ class Server:
                             
                     for client in self.logged_in:
                         client.send(("[LIST]" + filename).encode('utf-8'))
+                        
+                    self.broadcast(filename, client, username)
                 
                 elif message.startswith("[LOAD]"):
                     message = message.replace("[LOAD]", "")
                     try:
                         with open("chat.txt", "r") as file:
                             for line in file:
-                                client.send(line.encode('utf-8'))
+                                if line != "\n":
+                                    client.send(line.encode('utf-8'))
                         for f in self.files:
                             sleep(0.05)
                             client.send(("[LIST]" + f).encode('utf-8'))
-                            sleep(0.05)
                     except:
                         print("No file")
                         
@@ -143,8 +151,6 @@ class Server:
                     break
                     
                 else:
-                    with open("chat.txt", "a") as file:
-                        file.write(username + ": " + message + "\n")
                     self.broadcast(message, client, username)
             except:
                 if client in self.clients:

@@ -41,7 +41,6 @@ class Client():
         filepath = filedialog.askopenfilename(title = "Wybierz plik do przesłania")
         filename = filepath.split("/")
         filename = filename[len(filename) - 1]
-        print(filename)
         
         file = open(filepath, "rb")
         
@@ -168,7 +167,8 @@ class Client():
         recv_thread.start()
     
     def downloadFiles(self, filename):
-        self.write("[FILEREQUEST]" + filename)
+        if filename:
+            self.write("[FILEREQUEST]" + filename)
     
     def newConversation(self):
         pop = Toplevel(self.app)
@@ -190,7 +190,6 @@ class Client():
         
             response = client.recv(PACKET_SIZE).decode("utf-8")
         
-            print(response)
             if response == "[OK]":
                 self.user = response.replace("[OK]", "")
                 self.mainApp()
@@ -228,7 +227,6 @@ class Client():
         while self.running:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
-                print(message)
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
                     
@@ -236,7 +234,6 @@ class Client():
                     message = message.replace("[LIST]", "")
                     self.filenames.append(message)
                     combo.configure(values = self.filenames)
-                    print(self.filenames)
                     
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
@@ -244,10 +241,8 @@ class Client():
                         data = client.recv(PACKET_SIZE)
 
                         while data != b"END_FILE":
-                            print(data)
                             file.write(data)
                             data = client.recv(PACKET_SIZE)
-                        print(data)    
                 else:
                     box.configure(state='normal')
                     box.insert(END, message)
