@@ -65,8 +65,6 @@ class Server:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
                 
-                print(message)
-                
                 if message.startswith("[REGISTER]"):
                     allow = True
                     try:
@@ -117,21 +115,17 @@ class Server:
                     try:
                         with open(filedir, "wb") as file:
                             while True:
-                                print("kurwa")
                                 data = client.recv(PACKET_SIZE)
                                 
                                 if data == b'END_FILE':
-                                    print(f"Otrzymano plik: {filename}")
                                     break
                                 
                                 if data:
                                     file.write(data)
                                     client.send(b'[OK]')
                                     sleep(0.1)
-                                    print("Wysłano OK do klienta")
                                     
                                 else:
-                                    print("Brak danych od klienta")
                                     break
 
                         if filename not in self.files:
@@ -139,7 +133,6 @@ class Server:
                             self.files.append(filename)
                             for logged_client in self.logged_in:
                                 logged_client.send(("[LIST]" + filename).encode('utf-8'))
-                                print("Zaktualizowano listę plików")
                         
                         self.broadcast(filename, client, username)
                     
@@ -157,7 +150,7 @@ class Server:
                             sleep(0.2)
                             client.send(("[LIST]" + f).encode('utf-8'))
                     except:
-                        print("No file")
+                        continue
                         
                 elif message.startswith("[FILEREQUEST]"):
                     try:
@@ -165,7 +158,6 @@ class Server:
                         filedir = ".\\files\\" + filename
                         with open(filedir, "rb") as file:
                             client.send(("[FILE]" + filename).encode("utf-8"))
-                            print("wyslano nazwe pliku")
                     
                             data = " "
                             response = b'[OK]'
@@ -187,7 +179,6 @@ class Server:
                             
                         sleep(0.5)
                         client.send(b'END_FILE')
-                        print("sent end")
                 
                     except Exception as e:
                         print(e)
@@ -199,7 +190,6 @@ class Server:
                         if client in self.logged_in:
                             self.logged_in.remove(client)
                         print(address[0] + " disconnected from the server.")
-                        print("NOMESS")
                         client.close()
                     break
                     

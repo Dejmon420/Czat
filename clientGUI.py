@@ -57,7 +57,6 @@ class Client():
                 data = " "
                 response = b'[OK]'
                 while data and response == b'[OK]':
-                    print("blyat")
                     try:
                         data = file.read(PACKET_SIZE)
                         if data == b'':
@@ -75,7 +74,6 @@ class Client():
             sleep(0.5)
             client.send(b'END_FILE')
             self.status_label.config(text = "Status: oczekiwanie")
-            print("sent end")
                 
         except Exception as e:
             pass
