@@ -4,7 +4,7 @@ import os
 from time import sleep
 
 HOST = '192.168.1.24'
-PORT = 2000
+PORT = 3000
 PACKET_SIZE = 2048
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,6 +54,8 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
+                
+                print(message)
                 
                 if message.startswith("[REGISTER]"):
                     allow = True
@@ -106,8 +108,9 @@ class Server:
                     with open(filedir, "wb") as file:
                         data = client.recv(PACKET_SIZE)
 
-                        while data != b"END_FILE":
+                        while data != b'END_FILE' and data:
                             file.write(data)
+                            print(data)
                             data = client.recv(PACKET_SIZE)
                             
                     for client in self.logged_in:
@@ -123,7 +126,7 @@ class Server:
                                 if line != "\n":
                                     client.send(line.encode('utf-8'))
                         for f in self.files:
-                            sleep(0.05)
+                            sleep(0.1)
                             client.send(("[LIST]" + f).encode('utf-8'))
                     except:
                         print("No file")
@@ -133,15 +136,14 @@ class Server:
                     filedir = ".\\files\\" + filename
                     with open(filedir, "rb") as file:
                         client.send(("[FILE]" + filename).encode('utf-8'))
-                        print(data)
                         data = " "
                         while data:
                             data = file.read(PACKET_SIZE)
                             client.send(data)
-                            sleep(0.05)
                             print(data)
         
-                        client.send(b"END_FILE")
+                        sleep(0.05)
+                        client.send(b'END_FILE')
                 
                 elif not message:
                     if client in self.clients:

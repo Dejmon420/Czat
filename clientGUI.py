@@ -1,19 +1,25 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+from time import sleep
 import socket
 import threading
 import sys
+import os
 import errno
 
 #Definiowanie podstawowych danych do połączenia między klientem a serwerem
-HOST = '192.168.1.24'
-PORT = 2000
+HOST = '178.42.81.28'
+PORT = 3000
 PACKET_SIZE = 2048
 
 #Nawiązywanie połączenia między klientem a serwerem
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
+
+path = ".\\pobrane\\"
+if not os.path.exists(path):
+    os.makedirs(path)
 
 class Client():
     def __init__(self):
@@ -38,22 +44,28 @@ class Client():
 
     #Funkcja otwierająca dialog wyboru pliku
     def fileDialog(self):
-        filepath = filedialog.askopenfilename(title = "Wybierz plik do przesłania")
-        filename = filepath.split("/")
-        filename = filename[len(filename) - 1]
-        
-        file = open(filepath, "rb")
-        
-        data = file.read(PACKET_SIZE)
-        self.write("[FILE]" + filename)
-        
-        while data:
-            client.send(data)
-            data = file.read(PACKET_SIZE)
-            print(data)
-        
-        client.send(b"END_FILE")
-        file.close()
+        try:
+            filepath = filedialog.askopenfilename(title = "Wybierz plik do przesłania")
+            filename = filepath.split("/")
+            filename = filename[len(filename) - 1]
+            
+            with open(filepath, "rb") as file:
+                self.write("[FILE]" + filename)
+                
+                client.setblocking(1)
+                data = " "
+                while data:
+                    data = file.read(PACKET_SIZE)
+                    client.send(data)
+                    print(data)
+                    #sleep(0.05)
+                
+                sleep(0.05)
+                print(client.send(b'END_FILE'))
+                client.setblocking(0)
+        except:
+            client.setblocking(0)
+            return
 
     #Funkcja czyszcząca główną ramkę programu    
     def clearMainFrame(self):
@@ -227,42 +239,44 @@ class Client():
     def receive(self, box, combo):
         while self.running:
             try:
-                message = client.recv(PACKET_SIZE).decode('utf-8')
+                message = client.recv(PACKET_SIZE).decode('utf-8')    
                 
+                if message.startswith("[OK]") or message.startswith("[ERROR]"):
+                    continue
+                        
+                elif message.startswith("[LIST]"):
+                    message = message.replace("[LIST]", "")
+                    self.filenames.append(message)
+                    combo.configure(values = self.filenames)
+                        
+                elif message.startswith("[FILE]"):
+                    client.setblocking(1)
+                    filename = message.replace("[FILE]", "")
+                    with open(".\\pobrane\\" + filename, "wb") as file:
+                        while True:
+                            try:
+                                data = client.recv(PACKET_SIZE)
+                                if data == b'END_FILE':  # Jeśli otrzymano znacznik końca pliku, przerwij pętlę
+                                    client.setblocking(0)
+                                    break
+                                file.write(data)  # Zapisuj tylko rzeczywiste dane
+                            except Exception as e:
+                                client.setblocking(0)
+                                break
+                    
+                else:
+                    box.configure(state='normal')
+                    box.insert(END, message)
+                    box.insert(END, "\n")
+                    box.yview("end")
+                    box.configure(state='disabled')
+                    
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
                 else:
-                    print(brek)
                     client.close()
                     break
-                        
-                
-            if message.startswith("[OK]") or message.startswith("[ERROR]"):
-                continue
-                    
-            elif message.startswith("[LIST]"):
-                message = message.replace("[LIST]", "")
-                self.filenames.append(message)
-                combo.configure(values = self.filenames)
-                    
-            elif message.startswith("[FILE]"):
-                filename = message.replace("[FILE]", "")
-                with open(filename, "wb") as file:
-                    while True:
-                        try:
-                            data = client.recv(PACKET_SIZE)
-                            if data == b"END_FILE":  # Jeśli otrzymano znacznik końca pliku, przerwij pętlę
-                                break
-                            file.write(data)  # Zapisuj tylko rzeczywiste dane
-                        except Exception as e:
-                            continue
-            else:
-                box.configure(state='normal')
-                box.insert(END, message)
-                box.insert(END, "\n")
-                box.yview("end")
-                box.configure(state='disabled')
                     
     #Funkcja odpowiadająca za kliknięcie przycisku enter
     def onEnterClick(self, box):
