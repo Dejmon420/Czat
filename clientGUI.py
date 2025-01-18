@@ -9,7 +9,7 @@ import os
 import errno
 
 #Definiowanie podstawowych danych do połączenia między klientem a serwerem
-HOST = '178.42.81.28'
+HOST = '83.6.73.77'
 PORT = 3000
 PACKET_SIZE = 2048
 
@@ -45,6 +45,8 @@ class Client():
     #Funkcja otwierająca dialog wyboru pliku
     def fileDialog(self):
         try:
+            self.status_label.config(text = "Status: wysyłanie")
+            client.setblocking(1)
             filepath = filedialog.askopenfilename(title = "Wybierz plik do przesłania")
             filename = filepath.split("/")
             filename = filename[len(filename) - 1]
@@ -52,20 +54,31 @@ class Client():
             with open(filepath, "rb") as file:
                 self.write("[FILE]" + filename)
                 
-                client.setblocking(1)
                 data = " "
-                while data:
-                    data = file.read(PACKET_SIZE)
-                    client.send(data)
-                    print(data)
-                    #sleep(0.05)
+                response = b'[OK]'
+                while data and response == b'[OK]':
+                    print("blyat")
+                    try:
+                        data = file.read(PACKET_SIZE)
+                        if data == b'':
+                            break
+                        client.send(data)
+                        sleep(0.05)
+                        print("sent data" + str(data))
+                        response = client.recv(PACKET_SIZE)
+                        #sleep(0.02)
+                        print("Got response")
+                        sleep(0.01)
+                    except:
+                        continue
+            
+            sleep(0.5)
+            client.send(b'END_FILE')
+            self.status_label.config(text = "Status: oczekiwanie")
+            print("sent end")
                 
-                sleep(0.05)
-                print(client.send(b'END_FILE'))
-                client.setblocking(0)
-        except:
-            client.setblocking(0)
-            return
+        except Exception as e:
+            pass
 
     #Funkcja czyszcząca główną ramkę programu    
     def clearMainFrame(self):
@@ -141,7 +154,6 @@ class Client():
     #Główny interfejs aplikacji
     def mainApp(self):
         self.clearMainFrame()
-        client.setblocking(0)
         self.write("[LOAD]")
         
         #Ramka znajomych
@@ -159,8 +171,11 @@ class Client():
         scrollbar.grid(row = 0, column = 3, sticky = "nse")
         review_box['yscrollcommand'] = scrollbar.set
         
+        self.status_label = Label(friends_frame, text = "Status: oczekiwanie")
+        self.status_label.grid(row = 0)
+        
         combo_box = ttk.Combobox(friends_frame)
-        combo_box.grid(row = 0)
+        combo_box.grid(row = 1)
         
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
         message_box = Entry(text_frame, width = 110)
@@ -171,8 +186,8 @@ class Client():
         
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
-        Button(text_frame, text = "Wybierz plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
-        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(combo_box.get())).grid(row = 1)
+        Button(text_frame, text = "Wyślij plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
+        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(combo_box.get())).grid(row = 2)
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
@@ -239,43 +254,65 @@ class Client():
     def receive(self, box, combo):
         while self.running:
             try:
-                message = client.recv(PACKET_SIZE).decode('utf-8')    
-                
+                client.setblocking(0)
+                message = client.recv(PACKET_SIZE).decode('utf-8')
+                print(message)
+
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
                         
                 elif message.startswith("[LIST]"):
+                    client.setblocking(1)
                     message = message.replace("[LIST]", "")
                     self.filenames.append(message)
-                    combo.configure(values = self.filenames)
+                    combo.configure(values = self.filenames, state = "readonly")
                         
                 elif message.startswith("[FILE]"):
-                    client.setblocking(1)
+                    self.status_label.config(text = "Status: pobieranie")
                     filename = message.replace("[FILE]", "")
-                    with open(".\\pobrane\\" + filename, "wb") as file:
-                        while True:
-                            try:
+                    filedir = ".\\pobrane\\" + filename
+                    try:
+                        with open(filedir, "wb") as file:
+                            client.setblocking(1)
+                            while True:
+                                print("kurwa")
                                 data = client.recv(PACKET_SIZE)
-                                if data == b'END_FILE':  # Jeśli otrzymano znacznik końca pliku, przerwij pętlę
-                                    client.setblocking(0)
+                                
+                                if data == b'END_FILE':
+                                    print(f"Otrzymano plik: {filename}")
+                                    self.status_label.config(text = "Status: oczekiwanie")
                                     break
-                                file.write(data)  # Zapisuj tylko rzeczywiste dane
-                            except Exception as e:
-                                client.setblocking(0)
-                                break
+                                
+                                if data:
+                                    file.write(data)
+                                    client.send(b'[OK]')
+                                    sleep(0.05)
+                                    print("Wysłano OK do klienta")
+                                    
+                                else:
+                                    print("Brak danych od klienta")
+                                    break
                     
-                else:
+                    except Exception as e:
+                        print(f"Wystąpił błąd podczas odbierania pliku: {e}")
+                    
+                elif message:
                     box.configure(state='normal')
                     box.insert(END, message)
                     box.insert(END, "\n")
                     box.yview("end")
                     box.configure(state='disabled')
                     
+                else:
+                    client.disconnect()
+                    break
+                    
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
                 else:
                     client.close()
+                    print(e)
                     break
                     
     #Funkcja odpowiadająca za kliknięcie przycisku enter
