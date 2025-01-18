@@ -63,12 +63,12 @@ class Client():
                         if data == b'':
                             break
                         client.send(data)
-                        sleep(0.05)
+                        sleep(0.1)
                         print("sent data" + str(data))
                         response = client.recv(PACKET_SIZE)
                         #sleep(0.02)
                         print("Got response")
-                        sleep(0.01)
+                        #sleep(0.01)
                     except:
                         continue
             
@@ -286,7 +286,7 @@ class Client():
                                 if data:
                                     file.write(data)
                                     client.send(b'[OK]')
-                                    sleep(0.05)
+                                    sleep(0.1)
                                     print("Wysłano OK do klienta")
                                     
                                 else:

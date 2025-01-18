@@ -127,7 +127,7 @@ class Server:
                                 if data:
                                     file.write(data)
                                     client.send(b'[OK]')
-                                    sleep(0.05)
+                                    sleep(0.1)
                                     print("Wysłano OK do klienta")
                                     
                                 else:
@@ -175,13 +175,12 @@ class Server:
                                     if data == b'':
                                         break
                                     client.send(data)
-                                    sleep(0.05)
+                                    sleep(0.1)
                                     print("sent data" + str(data))
                                     print("czekam na odpowiedz")
                                     response = client.recv(PACKET_SIZE)
-                                    #sleep(0.02)
                                     print("Got response" + str(response))
-                                    sleep(0.01)
+                                    #sleep(0.01)
                                 except Exception as e:
                                     print(e)
                                     continue
