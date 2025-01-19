@@ -53,6 +53,7 @@ class Client():
             
             with open(filepath, "rb") as file:
                 self.write("[FILE]" + filename)
+                sleep(0.1)
                 
                 data = " "
                 response = b'[OK]'
@@ -174,6 +175,10 @@ class Client():
         
         combo_box = ttk.Combobox(friends_frame)
         combo_box.grid(row = 1)
+        combo_box.configure(state = "readonly")
+        
+        create_room_entry = Entry(friends_frame)
+        create_room_entry.grid(row = 3)
         
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
         message_box = Entry(text_frame, width = 110)
@@ -186,11 +191,16 @@ class Client():
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
         Button(text_frame, text = "Wyślij plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
         Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(combo_box.get())).grid(row = 2)
+        Button(friends_frame, text = "Utwórz pokój", command = lambda: self.createRoom(create_room_entry.get())).grid(row = 4)
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
         recv_thread = threading.Thread(target = lambda: self.receive(review_box, combo_box))
         recv_thread.start()
+    
+    def createRoom(self, name):
+        self.write("[ROOM]" + name)
+        print("[ROOM]" + name)
     
     def downloadFiles(self, filename):
         if filename:
@@ -253,8 +263,9 @@ class Client():
         while self.running:
             try:
                 client.setblocking(0)
-                message = client.recv(PACKET_SIZE).decode('utf-8')
+                message = client.recv(PACKET_SIZE)
                 print(message)
+                message = message.decode('utf-8')
 
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
@@ -263,7 +274,7 @@ class Client():
                     client.setblocking(1)
                     message = message.replace("[LIST]", "")
                     self.filenames.append(message)
-                    combo.configure(values = self.filenames, state = "readonly")
+                    combo.configure(values = self.filenames)
                         
                 elif message.startswith("[FILE]"):
                     self.status_label.config(text = "Status: pobieranie")
@@ -274,6 +285,9 @@ class Client():
                             client.setblocking(1)
                             while True:
                                 data = client.recv(PACKET_SIZE)
+                                
+                                if data == b'':
+                                    break
                                 
                                 if data == b'END_FILE':
                                     print(f"Otrzymano plik: {filename}")
