@@ -65,7 +65,7 @@ class Client():
                         sleep(0.1)
                         print("sent data" + str(data))
                         response = client.recv(PACKET_SIZE)
-                        #sleep(0.02)
+                        sleep(0.1)
                         print("Got response")
                         #sleep(0.01)
                     except:
@@ -273,7 +273,6 @@ class Client():
                         with open(filedir, "wb") as file:
                             client.setblocking(1)
                             while True:
-                                print("kurwa")
                                 data = client.recv(PACKET_SIZE)
                                 
                                 if data == b'END_FILE':

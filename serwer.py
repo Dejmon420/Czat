@@ -171,6 +171,7 @@ class Server:
                                     print("sent data" + str(data))
                                     print("czekam na odpowiedz")
                                     response = client.recv(PACKET_SIZE)
+                                    sleep(0.1)
                                     print("Got response" + str(response))
                                     #sleep(0.01)
                                 except Exception as e:
