@@ -9,7 +9,7 @@ import os
 import errno
 
 #Definiowanie podstawowych danych do połączenia między klientem a serwerem
-HOST = '83.6.73.77'
+HOST = 'pawelksi.mywire.org'
 PORT = 3000
 PACKET_SIZE = 2048
 
@@ -334,7 +334,8 @@ class Client():
                     except Exception as e:
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
                     
-                elif message:
+                elif message.startswith("[MSG]"):
+                    message = message.replace("[MSG]", "")
                     box.configure(state='normal')
                     box.insert(END, message)
                     box.insert(END, "\n")
