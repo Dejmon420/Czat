@@ -26,6 +26,7 @@ class Client():
         self.user = ""
         self.running = True
         self.filenames = []
+        self.roomnames = []
         
         #Tworzenie aplikacji tkinter
         self.app = Tk()
@@ -173,9 +174,13 @@ class Client():
         self.status_label = Label(friends_frame, text = "Status: oczekiwanie")
         self.status_label.grid(row = 0)
         
-        combo_box = ttk.Combobox(friends_frame)
-        combo_box.grid(row = 1)
-        combo_box.configure(state = "readonly")
+        file_combo_box = ttk.Combobox(friends_frame)
+        file_combo_box.grid(row = 1)
+        file_combo_box.configure(state = "readonly")
+        
+        room_combo_box = ttk.Combobox(friends_frame)
+        room_combo_box.grid(row = 5)
+        room_combo_box.configure(state = "readonly")
         
         create_room_entry = Entry(friends_frame)
         create_room_entry.grid(row = 3)
@@ -190,17 +195,33 @@ class Client():
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
         Button(text_frame, text = "Wyślij plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
-        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(combo_box.get())).grid(row = 2)
+        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(file_combo_box.get())).grid(row = 2)
         Button(friends_frame, text = "Utwórz pokój", command = lambda: self.createRoom(create_room_entry.get())).grid(row = 4)
+        Button(friends_frame, text = "Zmień pokój", command = lambda: self.changeRoom(room_combo_box.get(), file_combo_box, room_combo_box, review_box)).grid(row = 6)
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
-        recv_thread = threading.Thread(target = lambda: self.receive(review_box, combo_box))
+        recv_thread = threading.Thread(target = lambda: self.receive(review_box, file_combo_box, room_combo_box))
         recv_thread.start()
     
+    def changeRoom(self, name, file_combo, room_combo, text):
+        if name:
+            file_combo.configure(values = [])
+            room_combo.configure(values = [])
+            self.filenames = []
+            self.roomnames = []
+            text.configure(state='normal')
+            text.delete(1.0, END)
+            text.configure(state='disabled')
+            self.write("[ROOMCHANGE]" + name)
+            sleep(0.1)
+            self.write("[LOAD]")
+            print("[ROOMCHANGE]" + name)
+    
     def createRoom(self, name):
-        self.write("[ROOM]" + name)
-        print("[ROOM]" + name)
+        if name:
+            self.write("[ROOM]" + name)
+            print("[ROOM]" + name)
     
     def downloadFiles(self, filename):
         if filename:
@@ -259,7 +280,7 @@ class Client():
             client.close()
 
     #Funkcja odbierająca informacje od serwera    
-    def receive(self, box, combo):
+    def receive(self, box, file_combo, room_combo):
         while self.running:
             try:
                 client.setblocking(0)
@@ -274,7 +295,13 @@ class Client():
                     client.setblocking(1)
                     message = message.replace("[LIST]", "")
                     self.filenames.append(message)
-                    combo.configure(values = self.filenames)
+                    file_combo.configure(values = self.filenames)
+                    
+                elif message.startswith("[ROOM]"):
+                    client.setblocking(1)
+                    message = message.replace("[ROOM]", "")
+                    self.roomnames.append(message)
+                    room_combo.configure(values = self.roomnames)
                         
                 elif message.startswith("[FILE]"):
                     self.status_label.config(text = "Status: pobieranie")

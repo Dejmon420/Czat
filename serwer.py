@@ -2,6 +2,8 @@ import socket
 import threading
 import os
 from time import sleep
+import traceback
+from datetime import datetime
 
 HOST = '192.168.1.24'
 PORT = 3000
@@ -10,10 +12,6 @@ PACKET_SIZE = 2048
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
-
-path = ".\\files\\"
-if not os.path.exists(path):
-    os.makedirs(path)
 
 class Room:
     def __init__(self, name):
@@ -32,12 +30,15 @@ class Room:
         print("created room {}".format(name))
         
     def broadcast(self, message, sender, username, send_name = True):
+        print(self.users)
         if send_name:
+            time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            time = "[" + time + "]"
             with open(self.directory + "\\chat.txt", "a") as file:
-                file.write(username + ": " + message + "\n")
+                file.write(time + username + ": " + message + "\n")
                 
             for client in self.users:
-                client.send((username + ": " + message).encode('utf-8'))
+                client.send((time + username + ": " + message).encode('utf-8'))
         else:
             for client in self.users:
                 client.send(message.encode('utf-8'))
@@ -47,16 +48,36 @@ class Server:
         self.clients = []
         self.logged_in = []
         self.users = []
-        self.files = os.listdir(".\\files")
         self.rooms = []
         
         self.reloadUsers()
+        self.loadRooms()
         self.receive()
-
+    
     def createRoom(self, name):
-        room = Room(name)
-        self.rooms.append(room)
-        print(self.rooms)
+        try:
+            create = True
+            for r in self.rooms:
+                if r.name == name or name == "pobrane":
+                    create = False
+            if create:
+                room = Room(name)
+                self.rooms.append(room)
+                for client in self.logged_in:
+                    client.send(("[ROOM]" + name).encode("utf-8"))
+                print(self.rooms)
+        except Exception as e:
+            print(e)
+    
+    def loadRooms(self):
+        dirs = os.listdir(".\\")
+        print(dirs)
+        for d in dirs:
+            print(d)
+            if not os.path.isfile(d) and not d.startswith(".") and not d == "pobrane":
+                room = Room(d)
+                self.rooms.append(room)
+                print("Dodano pokoj")
     
     def reloadUsers(self):
         self.users = []
@@ -74,21 +95,16 @@ class Server:
         except:
             pass
 
-    def broadcast(self, message, sender, username, room):
-        with open(".\\" + room + "\\" + "chat.txt", "a") as file:
-            file.write(username + ": " + message + "\n")
-            
-        for client in self.logged_in:
-            client.send((username + ": " + message).encode('utf-8'))
-
     def handle(self, client, address):
         username = ''
         userid = ''
         active_room = self.rooms[0]
         active_room.users.append(client)
+        print("dodano {} do pokoju {}".format(client, active_room))
         while True:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
+                print(message)
                 
                 if message.startswith("[REGISTER]"):
                     allow = True
@@ -118,6 +134,7 @@ class Server:
                         self.reloadUsers()
                 
                 elif message.startswith("[LOGIN]"):
+                    print("logowanie")
                     send_error = True
                     message = message.replace("[LOGIN]", "")
                     message = message.split()
@@ -133,10 +150,24 @@ class Server:
                                 break
                     if send_error:
                         client.send("[ERROR]".encode("utf-8"))
-                
+                        print("error")
+                        
+                elif message.startswith("[ROOM]"):
+                    message = message.replace("[ROOM]", "")
+                    self.createRoom(message)
+                                               
+                elif message.startswith("[ROOMCHANGE]"):
+                    message = message.replace("[ROOMCHANGE]", "")
+                    for room in self.rooms:
+                        if room.name == message:
+                            active_room.users.remove(client)
+                            active_room = room
+                            active_room.users.append(client)
+                            
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
                     filedir = ".\\" + active_room.name + "\\files\\" + filename
+                    print(filedir)
                     try:
                         with open(filedir, "wb") as file:
                             while True:
@@ -153,9 +184,9 @@ class Server:
                                 else:
                                     break
 
-                        if filename not in self.files:
+                        if filename not in active_room.files:
                             sleep(0.1)
-                            self.files.append(filename)
+                            active_room.files.append(filename)
                             active_room.broadcast(("[LIST]" + filename), client, username, False)
                         
                         active_room.broadcast(filename, client, username)
@@ -165,14 +196,18 @@ class Server:
                 
                 elif message.startswith("[LOAD]"):
                     message = message.replace("[LOAD]", "")
+                    for f in active_room.files:
+                        sleep(0.2)
+                        client.send(("[LIST]" + f).encode('utf-8'))
+                    for room in self.rooms:
+                        sleep(0.2)
+                        client.send(("[ROOM]" + room.name).encode('utf-8'))
+                        
                     try:
                         with open(".\\" + active_room.name + "\\" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
                                     client.send(line.encode('utf-8'))
-                        for f in active_room.files:
-                            sleep(0.2)
-                            client.send(("[LIST]" + f).encode('utf-8'))
                     except:
                         continue
                         
@@ -216,22 +251,28 @@ class Server:
                 elif not message:
                     if client in self.clients:
                         self.clients.remove(client)
-                        if client in self.logged_in:
-                            self.logged_in.remove(client)
-                        print(address[0] + " disconnected from the server.")
-                        client.close()
+                    if client in self.logged_in:
+                        self.logged_in.remove(client)
+                    if client in active_room.users:
+                        active_room.users.remove(client)
+                    print(address[0] + " disconnected from the server.")
+                    client.close()
                     break
                     
                 else:
                     active_room.broadcast(message, client, username)
             except Exception as e:
+                print("co")
                 if client in self.clients:
                     self.clients.remove(client)
-                    if client in self.logged_in:
-                        self.logged_in.remove(client)
-                    print(address[0] + " disconnected from the server.")
-                    print(e)
-                    client.close()
+                if client in self.logged_in:
+                    self.logged_in.remove(client)
+                if client in active_room.users:
+                    active_room.users.remove(client)
+                print(address[0] + " disconnected from the server.")
+                print(e)
+                print(traceback.format_exc())
+                client.close()
                 break
             
     def receive(self):
@@ -239,6 +280,7 @@ class Server:
         while True:
             try:
                 client, address = server.accept()
+                
             except:
                 break
                 
