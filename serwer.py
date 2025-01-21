@@ -9,6 +9,28 @@ HOST = '192.168.1.24'
 PORT = 3000
 PACKET_SIZE = 2048
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    with open(".\\server_config.txt", "r") as f:
+        lines = f.readlines()
+
+        HOST = lines[0].strip()
+        PORT = int(lines[1].strip())
+        PACKET_SIZE = int(lines[2].strip())
+        print(f"Config loaded: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
+except Exception as e:   
+    HOST = '192.168.1.24'
+    PORT = 3000
+    PACKET_SIZE = 2048
+    print(f"Using default config: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
+ 
+print(HOST)
+print(PORT)
+print(PACKET_SIZE)
+
+print(os.getcwd())
+    
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
@@ -38,7 +60,7 @@ class Room:
                 file.write(time + username + ": " + message + "\n")
                 
             for client in self.users:
-                client.send((time + username + ": " + message).encode('utf-8'))
+                client.send(("[MSG]" + time + username + ": " + message).encode('utf-8'))
         else:
             for client in self.users:
                 client.send(message.encode('utf-8'))
@@ -63,6 +85,8 @@ class Server:
             if create:
                 room = Room(name)
                 self.rooms.append(room)
+                with open(room.directory + "\\chat.txt", "a") as f:
+                    f.write("<{}> utworzony [{}]\n".format(room.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
                 for client in self.logged_in:
                     client.send(("[ROOM]" + name).encode("utf-8"))
                 print(self.rooms)
@@ -185,11 +209,12 @@ class Server:
                                     break
 
                         if filename not in active_room.files:
-                            sleep(0.1)
+                            sleep(0.2)
                             active_room.files.append(filename)
                             active_room.broadcast(("[LIST]" + filename), client, username, False)
                         
                         active_room.broadcast(filename, client, username)
+                        sleep(0.1)
                     
                     except Exception as e:
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
@@ -207,7 +232,9 @@ class Server:
                         with open(".\\" + active_room.name + "\\" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
-                                    client.send(line.encode('utf-8'))
+                                    line = line.replace("\n", "")
+                                    client.send(("[MSG]" + line).encode('utf-8'))
+                                    sleep(0.2)
                     except:
                         continue
                         
@@ -234,7 +261,6 @@ class Server:
                                     sleep(0.1)
                                     print("Got response" + str(response))
                                     if not response == b'[OK]':
-                                        client.send(b'')
                                         break
                                     #sleep(0.01)
                                 except Exception as e:
@@ -243,6 +269,7 @@ class Server:
                             
                         sleep(0.5)
                         client.send(b'END_FILE')
+                        print("wyslano koniec")
                 
                     except Exception as e:
                         print(e)

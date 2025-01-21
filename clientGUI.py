@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from time import sleep
+import hashlib
 import socket
 import threading
 import sys
@@ -25,8 +26,12 @@ class Client():
     def __init__(self):
         self.user = ""
         self.running = True
+        self.block = False
         self.filenames = []
         self.roomnames = []
+        self.message_buffer = []
+        self.file_buffer = []
+        self.room_buffer = []
         
         #Tworzenie aplikacji tkinter
         self.app = Tk()
@@ -44,7 +49,7 @@ class Client():
         self.app.mainloop()
 
     #Funkcja otwierająca dialog wyboru pliku
-    def fileDialog(self):
+    def fileDialog(self, file_combo, room_combo, text):
         try:
             self.status_label.config(text = "Status: wysyłanie")
             client.setblocking(1)
@@ -76,6 +81,9 @@ class Client():
             sleep(0.5)
             client.send(b'END_FILE')
             self.status_label.config(text = "Status: oczekiwanie")
+            self.clearData(file_combo, room_combo, text)
+            self.write("[LOAD]")
+            print("wtf")
                 
         except Exception as e:
             pass
@@ -127,6 +135,14 @@ class Client():
                     username_widget.delete(0, END)
                     return
                     
+            
+            salt = "salt"
+            dataBase_password = password+salt
+            hashed = hashlib.md5(dataBase_password.encode())
+             
+            password = hashed.hexdigest()
+
+            
             info = "[REGISTER]" + login + " " + password + " " + username
             self.write(info)
             
@@ -194,29 +210,31 @@ class Client():
         
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
-        Button(text_frame, text = "Wyślij plik...", command = self.fileDialog).grid(column = 3, row = 1, sticky = "e")
+        Button(text_frame, text = "Wyślij plik...", command = lambda: self.fileDialog(file_combo_box, room_combo_box, review_box)).grid(column = 3, row = 1, sticky = "e")
         Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(file_combo_box.get())).grid(row = 2)
         Button(friends_frame, text = "Utwórz pokój", command = lambda: self.createRoom(create_room_entry.get())).grid(row = 4)
         Button(friends_frame, text = "Zmień pokój", command = lambda: self.changeRoom(room_combo_box.get(), file_combo_box, room_combo_box, review_box)).grid(row = 6)
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
-        recv_thread = threading.Thread(target = lambda: self.receive(review_box, file_combo_box, room_combo_box))
+        recv_thread = threading.Thread(target = lambda: self.receive(review_box, file_combo_box, room_combo_box, message_box))
         recv_thread.start()
     
     def changeRoom(self, name, file_combo, room_combo, text):
         if name:
-            file_combo.configure(values = [])
-            room_combo.configure(values = [])
-            self.filenames = []
-            self.roomnames = []
-            text.configure(state='normal')
-            text.delete(1.0, END)
-            text.configure(state='disabled')
+            self.clearData(file_combo, room_combo, text)
             self.write("[ROOMCHANGE]" + name)
             sleep(0.1)
             self.write("[LOAD]")
-            print("[ROOMCHANGE]" + name)
+            
+    def clearData(self, file_combo, room_combo, text):
+        file_combo.configure(values = [])
+        room_combo.configure(values = [])
+        self.filenames = []
+        self.roomnames = []
+        text.configure(state='normal')
+        text.delete(1.0, END)
+        text.configure(state='disabled')
     
     def createRoom(self, name):
         if name:
@@ -242,6 +260,11 @@ class Client():
         password = password_widget.get()
         
         if login != "" and password != "":
+            salt = "salt"
+            dataBase_password = password+salt
+            hashed = hashlib.md5(dataBase_password.encode())
+             
+            password = hashed.hexdigest()
             info = "[LOGIN]" + login + " " + password
             self.write(info)
         
@@ -273,18 +296,20 @@ class Client():
 
     #Funkcja wysyłająca wiadomość do serwera    
     def write(self, message = ""):
-        try:
-            client.send(message.encode('utf-8'))
-        except:
-            print("Failed to connect to the server.")
-            client.close()
+        if not self.block:
+            try:
+                client.send(message.encode('utf-8'))
+            except:
+                print("Failed to connect to the server.")
+                client.close()
 
     #Funkcja odbierająca informacje od serwera    
-    def receive(self, box, file_combo, room_combo):
+    def receive(self, box, file_combo, room_combo, entry):
         while self.running:
             try:
                 client.setblocking(0)
                 message = client.recv(PACKET_SIZE)
+                sleep(0.1)
                 print(message)
                 message = message.decode('utf-8')
 
@@ -310,26 +335,79 @@ class Client():
                     try:
                         with open(filedir, "wb") as file:
                             client.setblocking(1)
+                            self.block = True
                             while True:
+                                print("czekam na dane")
+                                sleep(0.1)
                                 data = client.recv(PACKET_SIZE)
-                                
+                                print(data)
                                 if data == b'':
-                                    break
+                                        #sleep(0.1)
+                                        continue
+                            
+                                elif data == b'END_FILE':
+                                    print("otrzymano koniec")
+                                    box.configure(state='normal')
+                                    for b in self.message_buffer:
+                                        box.insert(END, b)
+                                        box.insert(END, "\n")
+                                        box.yview("end")
+                                    box.configure(state='disabled')
+                                    self.message_buffer = []
+                                    
+                                    for b in self.file_buffer:
+                                        self.filenames.append(b)
+                                        file_combo.configure(values = self.filenames)
+                                    self.file_buffer = []
+                                    
+                                    for b in self.room_buffer:
+                                        self.roomnames.append(b)
+                                        room_combo.configure(values = self.roomnames)
+                                    self.room_buffer = []
                                 
-                                if data == b'END_FILE':
                                     print(f"Otrzymano plik: {filename}")
                                     self.status_label.config(text = "Status: oczekiwanie")
+                                    #sleep(0.1)
                                     break
                                 
-                                if data:
+                                elif data.startswith(b"[MSG]"):
+                                    data = data.decode("utf-8")
+                                    print(data)
+                                    data = data.replace("[MSG]", "")
+                                    self.message_buffer.append(data)
+                                    print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    #sleep(0.1)
+                                    continue
+                                    
+                                elif data.startswith(b"[LIST]"):
+                                    data = data.decode("utf-8")
+                                    print(data)
+                                    data = data.replace("[LIST]", "")
+                                    self.file_buffer.append(data)
+                                    print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    #sleep(0.1)
+                                    continue
+                                    
+                                elif data.startswith(b"[ROOM]"):
+                                    data = data.decode("utf-8")
+                                    print(data)
+                                    data = data.replace("[ROOM]", "")
+                                    self.room_buffer.append(data)
+                                    print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    #sleep(0.1)
+                                    continue
+                                    
+                                elif data:
+                                    print("otrzymano {}".format(data))
                                     file.write(data)
-                                    client.send(b'[OK]')
                                     sleep(0.1)
-                                    print("Wysłano OK do klienta")
+                                    client.send(b'[OK]')
                                     
                                 else:
                                     print("Brak danych od klienta")
                                     break
+                                    
+                        self.block = False
                     
                     except Exception as e:
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
@@ -342,9 +420,9 @@ class Client():
                     box.yview("end")
                     box.configure(state='disabled')
                     
-                else:
-                    client.disconnect()
-                    break
+                #else:
+                    #client.close()
+                    #break
                     
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
