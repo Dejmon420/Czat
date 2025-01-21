@@ -232,7 +232,7 @@ class Server:
                                 if line != "\n":
                                     line = line.replace("\n", "")
                                     client.send(("[MSG]" + line).encode('utf-8'))
-                                    sleep(0.05)
+                                    sleep(0.1)
                     except:
                         continue
                         
