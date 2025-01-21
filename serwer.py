@@ -185,6 +185,7 @@ class Server:
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
                     filedir = active_room.name + "/files/" + filename
+                    nobroad.append(client)
                     print(filedir)
                     try:
                         with open(filedir, "wb") as file:
@@ -212,6 +213,9 @@ class Server:
                     
                     except Exception as e:
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
+                        
+                    finally:
+                        nobroad.remove(client)
                 
                 elif message.startswith("[LOAD]"):
                     nobroad.append(client)
