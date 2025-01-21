@@ -219,7 +219,6 @@ class Server:
                 
                 elif message.startswith("[LOAD]"):
                     nobroad.append(client)
-                    message = message.replace("[LOAD]", "")
                     for f in active_room.files:
                         sleep(0.2)
                         client.send(("[LIST]" + f).encode('utf-8'))
@@ -233,7 +232,7 @@ class Server:
                                 if line != "\n":
                                     line = line.replace("\n", "")
                                     client.send(("[MSG]" + line).encode('utf-8'))
-                                    sleep(0.2)
+                                    sleep(0.05)
                     except:
                         continue
                         

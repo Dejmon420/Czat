@@ -32,6 +32,7 @@ class Client():
         self.message_buffer = []
         self.file_buffer = []
         self.room_buffer = []
+        self.load = False
         
         #Tworzenie aplikacji tkinter
         self.app = Tk()
@@ -51,7 +52,7 @@ class Client():
     #Funkcja otwierająca dialog wyboru pliku
     def fileDialog(self, file_combo, room_combo, text):
         try:
-            self.status_label.config(text = "Status: wysyłanie")
+            self.status_label.config(text = "Status pobierania: wysyłanie")
             client.setblocking(1)
             filepath = filedialog.askopenfilename(title = "Wybierz plik do przesłania")
             filename = filepath.split("/")
@@ -80,7 +81,7 @@ class Client():
             
             sleep(0.5)
             client.send(b'END_FILE')
-            self.status_label.config(text = "Status: oczekiwanie")
+            self.status_label.config(text = "Status pobierania: oczekiwanie")
             self.clearData(file_combo, room_combo, text)
             self.write("[LOAD]")
             print("wtf")
@@ -166,6 +167,7 @@ class Client():
         
         #przycisk rejestracji
         Button(self.main_frame, text = "Zarejestruj", command = lambda: self.sendRegisterInfo(login, password, username)).grid(column = 1, row = 3, sticky = "swen")
+        Button(self.main_frame, text = "Logowanie", command = lambda: self.logIn()).grid(column = 0, row = 3, sticky = "swen")
 
     #Główny interfejs aplikacji
     def mainApp(self):
@@ -187,7 +189,7 @@ class Client():
         scrollbar.grid(row = 0, column = 3, sticky = "nse")
         review_box['yscrollcommand'] = scrollbar.set
         
-        self.status_label = Label(friends_frame, text = "Status: oczekiwanie")
+        self.status_label = Label(friends_frame, text = "Status pobierania: oczekiwanie")
         self.status_label.grid(row = 0)
         
         file_combo_box = ttk.Combobox(friends_frame)
@@ -229,6 +231,7 @@ class Client():
             
     def clearData(self, file_combo, room_combo, text):
         file_combo.configure(values = [])
+        file_combo.delete(0, END)
         room_combo.configure(values = [])
         self.filenames = []
         self.roomnames = []
@@ -291,8 +294,8 @@ class Client():
         password.grid(column = 1, row = 1, columnspan = 2)
         
         #Przyciski
-        Button(self.main_frame, text = "Zaloguj", command = lambda: self.sendLogInInfo(login, password)).grid(column = 1, row = 2, sticky = "w")
-        Button(self.main_frame, text = "Zarejestruj", command = self.register).grid(column = 2, row = 2, sticky = "e")
+        Button(self.main_frame, text = "Zaloguj", command = lambda: self.sendLogInInfo(login, password)).grid(column = 1, row = 2, sticky = "swen")
+        Button(self.main_frame, text = "Rejestracja", command = self.register).grid(column = 2, row = 2, sticky = "swen")
 
     #Funkcja wysyłająca wiadomość do serwera    
     def write(self, message = ""):
@@ -308,6 +311,11 @@ class Client():
         while self.running:
             try:
                 client.setblocking(0)
+                if self.load:
+                    self.load = False
+                    self.clearData(file_combo, room_combo, box)
+                    self.write("[LOAD]")
+                    
                 message = client.recv(PACKET_SIZE)
                 sleep(0.1)
                 print(message)
@@ -329,7 +337,7 @@ class Client():
                     room_combo.configure(values = self.roomnames)
                         
                 elif message.startswith("[FILE]"):
-                    self.status_label.config(text = "Status: pobieranie")
+                    self.status_label.config(text = "Status pobierania: pobieranie")
                     filename = message.replace("[FILE]", "")
                     filedir = ".\\pobrane\\" + filename
                     try:
@@ -366,10 +374,8 @@ class Client():
                                     # self.room_buffer = []
                                 
                                     print(f"Otrzymano plik: {filename}")
-                                    self.status_label.config(text = "Status: oczekiwanie")
-                                    self.clearData(file_combo, room_combo, box)
-                                    self.write("[LOAD]")
-                                    print("wyslano load")
+                                    self.status_label.config(text = "Status pobierania: oczekiwanie")
+                                    self.load = True
                                     break
                                 
                                 # elif data.startswith(b"[MSG]"):
