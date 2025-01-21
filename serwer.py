@@ -5,10 +5,9 @@ from time import sleep
 import traceback
 from datetime import datetime
 
-HOST = '192.168.1.24'
-PORT = 3000
-PACKET_SIZE = 2048
-
+HOST = '192.168.1.16'
+PORT = 2000
+PACKET_SIZE = 4096
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -20,16 +19,9 @@ try:
         PACKET_SIZE = int(lines[2].strip())
         print(f"Config loaded: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
 except Exception as e:   
-    HOST = '192.168.1.24'
-    PORT = 3000
-    PACKET_SIZE = 2048
     print(f"Using default config: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
  
-print(HOST)
-print(PORT)
-print(PACKET_SIZE)
-
-print(os.getcwd())
+nobroad = []
     
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -60,10 +52,12 @@ class Room:
                 file.write(time + username + ": " + message + "\n")
                 
             for client in self.users:
-                client.send(("[MSG]" + time + username + ": " + message).encode('utf-8'))
+                if client not in nobroad:
+                    client.send(("[MSG]" + time + username + ": " + message).encode('utf-8'))
         else:
             for client in self.users:
-                client.send(message.encode('utf-8'))
+                if client not in nobroad:
+                    client.send(message.encode('utf-8'))
 
 class Server:
     def __init__(self):
@@ -88,7 +82,8 @@ class Server:
                 with open(room.directory + "/chat.txt", "a") as f:
                     f.write("<{}> utworzony [{}]\n".format(room.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
                 for client in self.logged_in:
-                    client.send(("[ROOM]" + name).encode("utf-8"))
+                    if client not in nobroad:
+                        client.send(("[ROOM]" + name).encode("utf-8"))
                 print(self.rooms)
         except Exception as e:
             print(e)
@@ -124,7 +119,6 @@ class Server:
         userid = ''
         active_room = self.rooms[0]
         active_room.users.append(client)
-        print("dodano {} do pokoju {}".format(client, active_room))
         while True:
             try:
                 message = client.recv(PACKET_SIZE).decode('utf-8')
@@ -220,6 +214,7 @@ class Server:
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
                 
                 elif message.startswith("[LOAD]"):
+                    nobroad.append(client)
                     message = message.replace("[LOAD]", "")
                     for f in active_room.files:
                         sleep(0.2)
@@ -237,6 +232,9 @@ class Server:
                                     sleep(0.2)
                     except:
                         continue
+                        
+                    finally:
+                        nobroad.remove(client)
                         
                 elif message.startswith("[FILEREQUEST]"):
                     try:

@@ -11,8 +11,8 @@ import errno
 
 #Definiowanie podstawowych danych do połączenia między klientem a serwerem
 HOST = 'pawelksi.mywire.org'
-PORT = 3000
-PACKET_SIZE = 2048
+PORT = 2000
+PACKET_SIZE = 4096
 
 #Nawiązywanie połączenia między klientem a serwerem
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,10 +69,10 @@ class Client():
                         if data == b'':
                             break
                         client.send(data)
-                        sleep(0.1)
+                        sleep(0.2)
                         print("sent data" + str(data))
                         response = client.recv(PACKET_SIZE)
-                        sleep(0.1)
+                        sleep(0.2)
                         print("Got response")
                         #sleep(0.01)
                     except:
