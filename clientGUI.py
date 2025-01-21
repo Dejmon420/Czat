@@ -347,26 +347,28 @@ class Client():
                             
                                 elif data == b'END_FILE':
                                     print("otrzymano koniec")
-                                    box.configure(state='normal')
-                                    for b in self.message_buffer:
-                                        box.insert(END, b)
-                                        box.insert(END, "\n")
-                                        box.yview("end")
-                                    box.configure(state='disabled')
-                                    self.message_buffer = []
+                                    # box.configure(state='normal')
+                                    # for b in self.message_buffer:
+                                        # box.insert(END, b)
+                                        # box.insert(END, "\n")
+                                        # box.yview("end")
+                                    # box.configure(state='disabled')
+                                    # self.message_buffer = []
                                     
-                                    for b in self.file_buffer:
-                                        self.filenames.append(b)
-                                        file_combo.configure(values = self.filenames)
-                                    self.file_buffer = []
+                                    # for b in self.file_buffer:
+                                        # self.filenames.append(b)
+                                        # file_combo.configure(values = self.filenames)
+                                    # self.file_buffer = []
                                     
-                                    for b in self.room_buffer:
-                                        self.roomnames.append(b)
-                                        room_combo.configure(values = self.roomnames)
-                                    self.room_buffer = []
+                                    # for b in self.room_buffer:
+                                        # self.roomnames.append(b)
+                                        # room_combo.configure(values = self.roomnames)
+                                    # self.room_buffer = []
                                 
                                     print(f"Otrzymano plik: {filename}")
                                     self.status_label.config(text = "Status: oczekiwanie")
+                                    self.clearData(file_combo, room_combo, box)
+                                    self.write("[LOAD]")
                                     #sleep(0.1)
                                     break
                                 

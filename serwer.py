@@ -241,6 +241,7 @@ class Server:
                         nobroad.remove(client)
                         
                 elif message.startswith("[FILEREQUEST]"):
+                    nobroad.append(client)
                     try:
                         filename = message.replace("[FILEREQUEST]", "")
                         filedir = active_room.name + "/files/" + filename
@@ -276,6 +277,9 @@ class Server:
                     except Exception as e:
                         print(e)
                         pass
+                        
+                    finally:
+                        nobroad.remove(client)
                 
                 elif not message:
                     if client in self.clients:
