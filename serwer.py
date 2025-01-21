@@ -44,10 +44,10 @@ class Room:
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
             
-        if not os.path.exists(self.directory + "\\files"):
-            os.makedirs(self.directory + "\\files")
+        if not os.path.exists(self.directory + "/files"):
+            os.makedirs(self.directory + "/files")
             
-        self.files = os.listdir(self.directory + "\\files")
+        self.files = os.listdir(self.directory + "/files")
         print(self.files)
         print("created room {}".format(name))
         
@@ -56,7 +56,7 @@ class Room:
         if send_name:
             time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             time = "[" + time + "]"
-            with open(self.directory + "\\chat.txt", "a") as file:
+            with open(self.directory + "/chat.txt", "a") as file:
                 file.write(time + username + ": " + message + "\n")
                 
             for client in self.users:
@@ -85,7 +85,7 @@ class Server:
             if create:
                 room = Room(name)
                 self.rooms.append(room)
-                with open(room.directory + "\\chat.txt", "a") as f:
+                with open(room.directory + "/chat.txt", "a") as f:
                     f.write("<{}> utworzony [{}]\n".format(room.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
                 for client in self.logged_in:
                     client.send(("[ROOM]" + name).encode("utf-8"))
@@ -190,7 +190,7 @@ class Server:
                             
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
-                    filedir = active_room.name + "\\files\\" + filename
+                    filedir = active_room.name + "/files/" + filename
                     print(filedir)
                     try:
                         with open(filedir, "wb") as file:
@@ -229,7 +229,7 @@ class Server:
                         client.send(("[ROOM]" + room.name).encode('utf-8'))
                         
                     try:
-                        with open(active_room.name + "\\" + "chat.txt", "r") as file:
+                        with open(active_room.name + "/" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
                                     line = line.replace("\n", "")
@@ -241,7 +241,7 @@ class Server:
                 elif message.startswith("[FILEREQUEST]"):
                     try:
                         filename = message.replace("[FILEREQUEST]", "")
-                        filedir = active_room.name + "\\files\\" + filename
+                        filedir = active_room.name + "/files/" + filename
                         with open(filedir, "rb") as file:
                             client.send(("[FILE]" + filename).encode("utf-8"))
                             sleep(0.1)
