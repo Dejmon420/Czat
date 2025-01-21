@@ -190,7 +190,7 @@ class Server:
                             
                 elif message.startswith("[FILE]"):
                     filename = message.replace("[FILE]", "")
-                    filedir = ".\\" + active_room.name + "\\files\\" + filename
+                    filedir = active_room.name + "\\files\\" + filename
                     print(filedir)
                     try:
                         with open(filedir, "wb") as file:
@@ -229,7 +229,7 @@ class Server:
                         client.send(("[ROOM]" + room.name).encode('utf-8'))
                         
                     try:
-                        with open(".\\" + active_room.name + "\\" + "chat.txt", "r") as file:
+                        with open(active_room.name + "\\" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
                                     line = line.replace("\n", "")
@@ -241,7 +241,7 @@ class Server:
                 elif message.startswith("[FILEREQUEST]"):
                     try:
                         filename = message.replace("[FILEREQUEST]", "")
-                        filedir = ".\\" + active_room.name + "\\files\\" + filename
+                        filedir = active_room.name + "\\files\\" + filename
                         with open(filedir, "rb") as file:
                             client.send(("[FILE]" + filename).encode("utf-8"))
                             sleep(0.1)
