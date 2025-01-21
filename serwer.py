@@ -12,7 +12,7 @@ PACKET_SIZE = 2048
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    with open(".\\server_config.txt", "r") as f:
+    with open("server_config.txt", "r") as f:
         lines = f.readlines()
 
         HOST = lines[0].strip()
@@ -39,7 +39,7 @@ class Room:
     def __init__(self, name):
         self.name = name
         self.users = []
-        self.directory = ".\\" + self.name
+        self.directory = self.name
         
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
@@ -94,7 +94,7 @@ class Server:
             print(e)
     
     def loadRooms(self):
-        dirs = os.listdir(".\\")
+        dirs = os.listdir()
         print(dirs)
         for d in dirs:
             print(d)
