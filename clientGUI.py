@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+from tkinter.tix import *
 from time import sleep
 import hashlib
 import socket
@@ -27,12 +28,9 @@ class Client():
         self.user = ""
         self.running = True
         self.block = False
+        self.load = False
         self.filenames = []
         self.roomnames = []
-        self.message_buffer = []
-        self.file_buffer = []
-        self.room_buffer = []
-        self.load = False
         
         #Tworzenie aplikacji tkinter
         self.app = Tk()
@@ -157,6 +155,8 @@ class Client():
         Label(self.main_frame, text = "Hasło").grid(column = 0, row = 1, sticky = "w")
         Label(self.main_frame, text = "Nazwa użytkownika").grid(column = 0, row = 2, sticky = "w")
         
+        tooltip = Balloon(self.main_frame)
+        
         #Pola do wpisywania danych
         login = Entry(self.main_frame, width = 30)
         login.grid(column = 1, row = 0)
@@ -168,6 +168,10 @@ class Client():
         #przycisk rejestracji
         Button(self.main_frame, text = "Zarejestruj", command = lambda: self.sendRegisterInfo(login, password, username)).grid(column = 1, row = 3, sticky = "swen")
         Button(self.main_frame, text = "Logowanie", command = lambda: self.logIn()).grid(column = 0, row = 3, sticky = "swen")
+        
+        tooltip.bind_widget(login, balloonmsg="Tutaj wpisz login.\nLogin powinien zawierać od 5 do 16 znaków.\nDozwolone znaki to a-z, A-Z, 0-9 oraz znaki ze zbioru (!, @, #, $, %, ^, &, *, _ , -)")
+        tooltip.bind_widget(password, balloonmsg="Tutaj wpisz hasło.\nHasło powinno zawierać od 5 do 16 znaków.\nDozwolone znaki to a-z, A-Z, 0-9 oraz znaki ze zbioru (!, @, #, $, %, ^, &, *, _ , -)")
+        tooltip.bind_widget(username, balloonmsg="Tutaj wpisz wyświetlaną nazwę użytkownika.\nNazwa użytkownika powinna zawierać od 5 do 16 znaków.\nDozwolone znaki to a-z, A-Z, 0-9 oraz znaki ze zbioru (!, @, #, $, %, ^, &, *, _ , -)")
 
     #Główny interfejs aplikacji
     def mainApp(self):
@@ -193,15 +197,15 @@ class Client():
         self.status_label.grid(row = 0)
         
         file_combo_box = ttk.Combobox(friends_frame)
-        file_combo_box.grid(row = 1)
+        file_combo_box.grid(row = 1, sticky = "we")
         file_combo_box.configure(state = "readonly")
         
         room_combo_box = ttk.Combobox(friends_frame)
-        room_combo_box.grid(row = 5)
+        room_combo_box.grid(row = 6, sticky = "swe")
         room_combo_box.configure(state = "readonly")
         
         create_room_entry = Entry(friends_frame)
-        create_room_entry.grid(row = 3)
+        create_room_entry.grid(row = 4, sticky = "swe")
         
         #Widżet Text, w którym użytkownik wpisuje wiadomość do wysłania
         message_box = Entry(text_frame, width = 110)
@@ -213,9 +217,9 @@ class Client():
         #Przyciski
         Button(text_frame, text = "Wyślij", command = lambda: self.onEnterClick(message_box)).grid(column = 2, row = 1, sticky = "e")
         Button(text_frame, text = "Wyślij plik...", command = lambda: self.fileDialog(file_combo_box, room_combo_box, review_box)).grid(column = 3, row = 1, sticky = "e")
-        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(file_combo_box.get())).grid(row = 2)
-        Button(friends_frame, text = "Utwórz pokój", command = lambda: self.createRoom(create_room_entry.get())).grid(row = 4)
-        Button(friends_frame, text = "Zmień pokój", command = lambda: self.changeRoom(room_combo_box.get(), file_combo_box, room_combo_box, review_box)).grid(row = 6)
+        Button(friends_frame, text = "Pobierz plik", command = lambda: self.downloadFiles(file_combo_box.get())).grid(row = 2, pady = (0, 200))
+        Button(friends_frame, text = "Utwórz pokój", command = lambda: self.createRoom(create_room_entry.get())).grid(row = 5, sticky = "s", pady = (0, 30))
+        Button(friends_frame, text = "Zmień pokój", command = lambda: self.changeRoom(room_combo_box.get(), file_combo_box, room_combo_box, review_box)).grid(row = 7, sticky = "s", pady = (0, 30))
         #Button(friends_frame, text = "Nowa", command = self.newConversation).grid(row = 1)
         
         #Wątek odbierający wiadomości z serwera
@@ -350,57 +354,14 @@ class Client():
                                 data = client.recv(PACKET_SIZE)
                                 print(data)
                                 if data == b'':
-                                        #sleep(0.1)
                                         continue
                             
                                 elif data == b'END_FILE':
-                                    print("otrzymano koniec")
-                                    # box.configure(state='normal')
-                                    # for b in self.message_buffer:
-                                        # box.insert(END, b)
-                                        # box.insert(END, "\n")
-                                        # box.yview("end")
-                                    # box.configure(state='disabled')
-                                    # self.message_buffer = []
-                                    
-                                    # for b in self.file_buffer:
-                                        # self.filenames.append(b)
-                                        # file_combo.configure(values = self.filenames)
-                                    # self.file_buffer = []
-                                    
-                                    # for b in self.room_buffer:
-                                        # self.roomnames.append(b)
-                                        # room_combo.configure(values = self.roomnames)
-                                    # self.room_buffer = []
-                                
+                                    print("otrzymano koniec")                                
                                     print(f"Otrzymano plik: {filename}")
                                     self.status_label.config(text = "Status pobierania: oczekiwanie")
                                     self.load = True
                                     break
-                                
-                                # elif data.startswith(b"[MSG]"):
-                                    # data = data.decode("utf-8")
-                                    # print(data)
-                                    # data = data.replace("[MSG]", "")
-                                    # self.message_buffer.append(data)
-                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    # continue
-                                    
-                                # elif data.startswith(b"[LIST]"):
-                                    # data = data.decode("utf-8")
-                                    # print(data)
-                                    # data = data.replace("[LIST]", "")
-                                    # self.file_buffer.append(data)
-                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    # continue
-                                    
-                                # elif data.startswith(b"[ROOM]"):
-                                    # data = data.decode("utf-8")
-                                    # print(data)
-                                    # data = data.replace("[ROOM]", "")
-                                    # self.room_buffer.append(data)
-                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    # continue
                                     
                                 elif data:
                                     print("otrzymano {}".format(data))
@@ -424,10 +385,6 @@ class Client():
                     box.insert(END, "\n")
                     box.yview("end")
                     box.configure(state='disabled')
-                    
-                #else:
-                    #client.close()
-                    #break
                     
             except Exception as e:
                 if e.errno == errno.WSAEWOULDBLOCK:
