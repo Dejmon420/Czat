@@ -369,35 +369,32 @@ class Client():
                                     self.status_label.config(text = "Status: oczekiwanie")
                                     self.clearData(file_combo, room_combo, box)
                                     self.write("[LOAD]")
-                                    #sleep(0.1)
+                                    print("wyslano load")
                                     break
                                 
-                                elif data.startswith(b"[MSG]"):
-                                    data = data.decode("utf-8")
-                                    print(data)
-                                    data = data.replace("[MSG]", "")
-                                    self.message_buffer.append(data)
-                                    print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    #sleep(0.1)
-                                    continue
+                                # elif data.startswith(b"[MSG]"):
+                                    # data = data.decode("utf-8")
+                                    # print(data)
+                                    # data = data.replace("[MSG]", "")
+                                    # self.message_buffer.append(data)
+                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    # continue
                                     
-                                elif data.startswith(b"[LIST]"):
-                                    data = data.decode("utf-8")
-                                    print(data)
-                                    data = data.replace("[LIST]", "")
-                                    self.file_buffer.append(data)
-                                    print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    #sleep(0.1)
-                                    continue
+                                # elif data.startswith(b"[LIST]"):
+                                    # data = data.decode("utf-8")
+                                    # print(data)
+                                    # data = data.replace("[LIST]", "")
+                                    # self.file_buffer.append(data)
+                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    # continue
                                     
-                                elif data.startswith(b"[ROOM]"):
-                                    data = data.decode("utf-8")
-                                    print(data)
-                                    data = data.replace("[ROOM]", "")
-                                    self.room_buffer.append(data)
-                                    print("Rozkodowano {} i zapisano do bufora".format(data))
-                                    #sleep(0.1)
-                                    continue
+                                # elif data.startswith(b"[ROOM]"):
+                                    # data = data.decode("utf-8")
+                                    # print(data)
+                                    # data = data.replace("[ROOM]", "")
+                                    # self.room_buffer.append(data)
+                                    # print("Rozkodowano {} i zapisano do bufora".format(data))
+                                    # continue
                                     
                                 elif data:
                                     print("otrzymano {}".format(data))

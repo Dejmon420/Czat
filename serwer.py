@@ -272,6 +272,7 @@ class Server:
                             
                         sleep(0.5)
                         client.send(b'END_FILE')
+                        sleep(0.1)
                         print("wyslano koniec")
                 
                     except Exception as e:
