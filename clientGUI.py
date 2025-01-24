@@ -287,7 +287,7 @@ class Client():
         
             if response.startswith("[OK]"):
                 response = response.replace("[OK]", "")
-                response = response.split()
+                response = response.split("<div>")
                 self.key = eval(response[0])
                 self.iv = eval(response[1])
                 print(self.key)
