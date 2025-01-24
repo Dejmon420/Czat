@@ -128,7 +128,7 @@ class Server:
         active_room = self.rooms[0]
         active_room.users.append(client)
         
-        while not client in logged_in:
+        while not client in self.logged_in:
             message = client.recv(PACKET_SIZE).decode("utf-8")
             print(message)
             
