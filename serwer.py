@@ -23,12 +23,38 @@ try:
         print(f"Config loaded: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
 except Exception as e:   
     print(f"Using default config: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
+
+self.key = os.urandom(32)
+self.iv = os.urandom(16)
+print(self.key)
+print(self.iv)
  
 nobroad = []
     
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
+
+def decryptMessage(ciphertext):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    decrypted_padded_message = decryptor.update(ciphertext) + decryptor.finalize()
+    unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+    decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
+    
+    return decrypted_message
+
+def encryptMessage(message):
+    message_bytes = message.encode('utf-8')
+            
+    padder = padding.PKCS7(algorithms.AES.block_size).padder()
+    padded_message = padder.update(message_bytes) + padder.finalize()
+    
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(padded_message) + encryptor.finalize()
+    
+    return ciphertext
 
 class Room:
     def __init__(self, name):
@@ -68,11 +94,6 @@ class Server:
         self.logged_in = []
         self.users = []
         self.rooms = []
-        
-        self.key = os.urandom(32)
-        self.iv = os.urandom(16)
-        print(self.key)
-        print(self.iv)
         
         self.reloadUsers()
         self.loadRooms()
@@ -121,15 +142,6 @@ class Server:
                     self.users.append(user)
         except:
             pass
-
-    def decryptMessage(self, ciphertext):
-        cipher = Cipher(algorithms.AES(self.key), modes.CBC(self.iv), backend=default_backend())
-        decryptor = cipher.decryptor()
-        decrypted_padded_message = decryptor.update(ciphertext) + decryptor.finalize()
-        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
-        decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
-        
-        return decrypted_message
     
     def handle(self, client, address):
         username = ''
@@ -191,7 +203,7 @@ class Server:
             try:
                 message = client.recv(PACKET_SIZE)
                 print(message)
-                message = self.decryptMessage(message)
+                message = decryptMessage(message)
                 message = message.decode("utf-8")
                 print(message)
                         
@@ -246,17 +258,17 @@ class Server:
                     nobroad.append(client)
                     for f in active_room.files:
                         sleep(0.2)
-                        client.send(("[LIST]" + f).encode('utf-8'))
+                        client.send(encryptMessage("[LIST]" + f).encode('utf-8'))
                     for room in self.rooms:
                         sleep(0.2)
-                        client.send(("[ROOM]" + room.name).encode('utf-8'))
+                        client.send(encryptMessage("[ROOM]" + room.name).encode('utf-8'))
                         
                     try:
                         with open(active_room.name + "/" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
                                     line = line.replace("\n", "")
-                                    client.send(("[MSG]" + line).encode('utf-8'))
+                                    client.send(encryptMessage("[MSG]" + line).encode('utf-8'))
                                     sleep(0.15)
                     except:
                         continue
@@ -270,7 +282,7 @@ class Server:
                         filename = message.replace("[FILEREQUEST]", "")
                         filedir = active_room.name + "/files/" + filename
                         with open(filedir, "rb") as file:
-                            client.send(("[FILE]" + filename).encode("utf-8"))
+                            client.send(encryptMessage("[FILE]" + filename).encode("utf-8"))
                             sleep(0.1)
                     
                             data = " "
