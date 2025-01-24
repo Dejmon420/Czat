@@ -359,6 +359,7 @@ class Client():
                 message = client.recv(PACKET_SIZE)
                 sleep(0.1)
                 print(message)
+                message = decryptMessage(message)
                 message = message.decode('utf-8')
 
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):

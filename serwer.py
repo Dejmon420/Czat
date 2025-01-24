@@ -82,11 +82,11 @@ class Room:
                 
             for client in self.users:
                 if client not in nobroad:
-                    client.send(("[MSG]" + time + username + ": " + message).encode('utf-8'))
+                    client.send(encryptMessage("[MSG]" + time + username + ": " + message))
         else:
             for client in self.users:
                 if client not in nobroad:
-                    client.send(message.encode('utf-8'))
+                    client.send(encryptMessage(message))
 
 class Server:
     def __init__(self):
@@ -258,17 +258,17 @@ class Server:
                     nobroad.append(client)
                     for f in active_room.files:
                         sleep(0.2)
-                        client.send(encryptMessage("[LIST]" + f).encode('utf-8'))
+                        client.send(encryptMessage("[LIST]" + f))
                     for room in self.rooms:
                         sleep(0.2)
-                        client.send(encryptMessage("[ROOM]" + room.name).encode('utf-8'))
+                        client.send(encryptMessage("[ROOM]" + room.name))
                         
                     try:
                         with open(active_room.name + "/" + "chat.txt", "r") as file:
                             for line in file:
                                 if line != "\n":
                                     line = line.replace("\n", "")
-                                    client.send(encryptMessage("[MSG]" + line).encode('utf-8'))
+                                    client.send(encryptMessage("[MSG]" + line))
                                     sleep(0.15)
                     except:
                         continue
@@ -282,7 +282,7 @@ class Server:
                         filename = message.replace("[FILEREQUEST]", "")
                         filedir = active_room.name + "/files/" + filename
                         with open(filedir, "rb") as file:
-                            client.send(encryptMessage("[FILE]" + filename).encode("utf-8"))
+                            client.send(encryptMessage("[FILE]" + filename))
                             sleep(0.1)
                     
                             data = " "
