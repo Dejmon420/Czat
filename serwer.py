@@ -67,7 +67,6 @@ class Room:
             os.makedirs(self.directory + "/files")
             
         self.files = os.listdir(self.directory + "/files")
-        print("created room {}".format(name))
         
     def broadcast(self, message, sender, username, send_name = True):
         if send_name:
@@ -143,7 +142,6 @@ class Server:
         
         while not client in self.logged_in:
             message = client.recv(PACKET_SIZE).decode("utf-8")
-            print(message)
             
             if message.startswith("[REGISTER]"):
                 allow = True
@@ -192,10 +190,8 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE)
-                print(message)
                 message = decryptMessage(message)
                 message = message.decode("utf-8")
-                print(message)
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
@@ -213,7 +209,6 @@ class Server:
                     filename = message.replace("[FILE]", "")
                     filedir = active_room.name + "/files/" + filename
                     nobroad.append(client)
-                    print(filedir)
                     try:
                         with open(filedir, "wb") as file:
                             while True:
@@ -284,10 +279,8 @@ class Server:
                                         break
                                     client.send(data)
                                     sleep(0.2)
-                                    print("sent data" + str(data))
                                     response = client.recv(PACKET_SIZE)
                                     sleep(0.2)
-                                    print("Got response" + str(response))
                                     if not response == b'[OK]':
                                         break
                                     #sleep(0.01)

@@ -75,11 +75,8 @@ class Client():
                             break
                         client.send(data)
                         sleep(0.2)
-                        print("sent data" + str(data))
                         response = client.recv(PACKET_SIZE)
                         sleep(0.2)
-                        print("Got response")
-                        #sleep(0.01)
                     except:
                         continue
             
@@ -280,8 +277,6 @@ class Client():
             
             client.send(info.encode("utf-8"))
             response = client.recv(PACKET_SIZE).decode("utf-8")
-            
-            print(response)
         
             if response.startswith("[OK]"):
                 response = response.replace("[OK]", "")
@@ -353,7 +348,6 @@ class Client():
                     
                 message = client.recv(PACKET_SIZE)
                 sleep(0.1)
-                print(message)
 
                 if not message:
                     continue
@@ -364,7 +358,6 @@ class Client():
                 except ValueError as e:
                     continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
 
-                print(message)
 
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
@@ -392,18 +385,15 @@ class Client():
                             while True:
                                 sleep(0.2)
                                 data = client.recv(PACKET_SIZE)
-                                print(data)
                                 if data == b'':
                                         continue
                             
                                 elif data == b'END_FILE':                            
-                                    print(f"Otrzymano plik: {filename}")
                                     self.status_label.config(text = "Status pobierania: oczekiwanie")
                                     self.load = True
                                     break
                                     
-                                elif data:
-                                    print("otrzymano {}".format(data))
+                                elif data:)
                                     file.write(data)
                                     sleep(0.2)
                                     client.send(b'[OK]')
