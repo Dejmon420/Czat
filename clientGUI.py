@@ -314,6 +314,15 @@ class Client():
         Button(self.main_frame, text = "Zaloguj", command = lambda: self.sendLogInInfo(login, password)).grid(column = 1, row = 2, sticky = "swen")
         Button(self.main_frame, text = "Rejestracja", command = self.register).grid(column = 2, row = 2, sticky = "swen")
 
+    def decryptMessage(self, ciphertext):
+        cipher = Cipher(algorithms.AES(self.key), modes.CBC(self.iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        decrypted_padded_message = decryptor.update(ciphertext) + decryptor.finalize()
+        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+        decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
+        
+        return decrypted_message
+    
     def encryptMessage(self, message):
         message_bytes = message.encode('utf-8')
                 

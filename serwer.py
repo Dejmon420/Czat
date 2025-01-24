@@ -24,10 +24,10 @@ try:
 except Exception as e:   
     print(f"Using default config: HOST={HOST}, PORT={PORT}, PACKET_SIZE={PACKET_SIZE}")
 
-self.key = os.urandom(32)
-self.iv = os.urandom(16)
-print(self.key)
-print(self.iv)
+key = os.urandom(32)
+iv = os.urandom(16)
+print(key)
+print(iv)
  
 nobroad = []
     
