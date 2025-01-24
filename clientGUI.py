@@ -88,7 +88,6 @@ class Client():
             self.status_label.config(text = "Status pobierania: oczekiwanie")
             self.clearData(file_combo, room_combo, text)
             self.write("[LOAD]")
-            print("wtf")
                 
         except Exception as e:
             pass
@@ -252,7 +251,6 @@ class Client():
     def createRoom(self, name):
         if name:
             self.write("[ROOM]" + name)
-            print("[ROOM]" + name)
     
     def downloadFiles(self, filename):
         if filename:
@@ -290,8 +288,6 @@ class Client():
                 response = response.split("<div>")
                 self.key = eval(response[0])
                 self.iv = eval(response[1])
-                print(self.key)
-                print(self.iv)
                 self.mainApp()
             else:
                 return
@@ -337,12 +333,11 @@ class Client():
     
     #Funkcja wysyłająca wiadomość do serwera    
     def write(self, message = ""):
-        if not self.block:
+        if not self.block and message:
             try:
                 message = self.encryptMessage(message)
                 client.send(message)
             except Exception as e:
-                print(e)
                 print("Failed to connect to the server.")
                 client.close()
 
@@ -367,7 +362,6 @@ class Client():
                     message = self.decryptMessage(message)
                     message = message.decode('utf-8')
                 except ValueError as e:
-                    print(f"Error while decrypting message: {e}")
                     continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
 
                 print(message)
@@ -396,15 +390,13 @@ class Client():
                             client.setblocking(1)
                             self.block = True
                             while True:
-                                print("czekam na dane")
                                 sleep(0.2)
                                 data = client.recv(PACKET_SIZE)
                                 print(data)
                                 if data == b'':
                                         continue
                             
-                                elif data == b'END_FILE':
-                                    print("otrzymano koniec")                                
+                                elif data == b'END_FILE':                            
                                     print(f"Otrzymano plik: {filename}")
                                     self.status_label.config(text = "Status pobierania: oczekiwanie")
                                     self.load = True
@@ -417,7 +409,6 @@ class Client():
                                     client.send(b'[OK]')
                                     
                                 else:
-                                    print("Brak danych od klienta")
                                     break
                                     
                         self.block = False
@@ -438,7 +429,6 @@ class Client():
                     continue
                 else:
                     client.close()
-                    print(e)
                     break
                     
     #Funkcja odpowiadająca za kliknięcie przycisku enter

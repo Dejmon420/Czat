@@ -26,8 +26,6 @@ except Exception as e:
 
 key = os.urandom(32)
 iv = os.urandom(16)
-print(key)
-print(iv)
  
 nobroad = []
     
@@ -69,11 +67,9 @@ class Room:
             os.makedirs(self.directory + "/files")
             
         self.files = os.listdir(self.directory + "/files")
-        print(self.files)
         print("created room {}".format(name))
         
     def broadcast(self, message, sender, username, send_name = True):
-        print(self.users)
         if send_name:
             time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             time = "[" + time + "]"
@@ -113,19 +109,15 @@ class Server:
                 for client in self.logged_in:
                     if client not in nobroad:
                         client.send(encryptMessage("[ROOM]" + name))
-                print(self.rooms)
         except Exception as e:
-            print(e)
+            pass
     
     def loadRooms(self):
         dirs = os.listdir()
-        print(dirs)
         for d in dirs:
-            print(d)
             if not os.path.isfile(d) and not d.startswith(".") and not d == "pobrane":
                 room = Room(d)
                 self.rooms.append(room)
-                print("Dodano pokoj")
     
     def reloadUsers(self):
         self.users = []
@@ -181,7 +173,6 @@ class Server:
                     self.reloadUsers()
             
             elif message.startswith("[LOGIN]"):
-                print("logowanie")
                 send_error = True
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
@@ -197,7 +188,6 @@ class Server:
                             break
                 if send_error:
                     client.send("[ERROR]".encode("utf-8"))
-                    print("error")
         
         while True:
             try:
@@ -295,7 +285,6 @@ class Server:
                                     client.send(data)
                                     sleep(0.2)
                                     print("sent data" + str(data))
-                                    print("czekam na odpowiedz")
                                     response = client.recv(PACKET_SIZE)
                                     sleep(0.2)
                                     print("Got response" + str(response))
@@ -303,15 +292,12 @@ class Server:
                                         break
                                     #sleep(0.01)
                                 except Exception as e:
-                                    print(e)
                                     continue
                             
                         sleep(0.5)
                         client.send(b'END_FILE')
-                        print("wyslano koniec")
                 
                     except Exception as e:
-                        print(e)
                         pass
                         
                     finally:
@@ -331,7 +317,6 @@ class Server:
                 else:
                     active_room.broadcast(message, client, username)
             except Exception as e:
-                print("co")
                 if client in self.clients:
                     self.clients.remove(client)
                 if client in self.logged_in:
@@ -339,8 +324,6 @@ class Server:
                 if client in active_room.users:
                     active_room.users.remove(client)
                 print(address[0] + " disconnected from the server.")
-                print(e)
-                print(traceback.format_exc())
                 client.close()
                 break
             
