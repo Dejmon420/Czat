@@ -66,6 +66,11 @@ class Server:
         self.users = []
         self.rooms = []
         
+        self.key = os.urandom(32)
+        self.iv = os.urandom(16)
+        print(self.key)
+        print(self.iv)
+        
         self.reloadUsers()
         self.loadRooms()
         self.receive()
