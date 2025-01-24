@@ -122,6 +122,15 @@ class Server:
         except:
             pass
 
+    def decryptMessage(self, ciphertext):
+        cipher = Cipher(algorithms.AES(self.key), modes.CBC(self.iv), backend=default_backend())
+        decryptor = cipher.decryptor()
+        decrypted_padded_message = decryptor.update(ciphertext) + decryptor.finalize()
+        unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+        decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
+        
+        return decrypted_message
+    
     def handle(self, client, address):
         username = ''
         userid = ''
@@ -181,6 +190,8 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE)
+                print(message)
+                message = decryptMessage(message)
                 print(message)
                         
                 if message.startswith("[ROOM]"):
