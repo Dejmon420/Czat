@@ -42,12 +42,10 @@ def decryptMessage(ciphertext):
     
     return decrypted_message
 
-def encryptMessage(message, encode = True):
-    if encode:
-        message_bytes = message.encode('utf-8')
-    else:
-        message_bytes = message
-            
+def encryptMessage(message):
+
+    message_bytes = message.encode('utf-8')
+    
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_message = padder.update(message_bytes) + padder.finalize()
     
@@ -193,12 +191,8 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE)
-                
-                try:
-                    message = self.decryptMessage(message)
-                    message = message.decode('utf-8')
-                except ValueError as e:
-                    continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
+                message = decryptMessage(message)
+                message = message.decode("utf-8")
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
@@ -220,14 +214,14 @@ class Server:
                         with open(filedir, "wb") as file:
                             while True:
                                 data = client.recv(PACKET_SIZE)
-                                data = decryptMessage(data)
+                                data = (data)
                                 
                                 if data == b'END_FILE':
                                     break
                                 
                                 if data:
                                     file.write(data)
-                                    client.send(encryptMessage(b'[OK]', False))
+                                    client.send(b'[OK]')
                                     sleep(0.2)
                                     
                                 else:
@@ -242,8 +236,6 @@ class Server:
                         sleep(0.1)
                     
                     except Exception as e:
-                        print(e)
-                        traceback.print_exc()
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
                         
                     finally:

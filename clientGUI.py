@@ -6,6 +6,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from tkinter.tix import *
 from time import sleep
+import traceback
 import hashlib
 import socket
 import threading
@@ -73,10 +74,9 @@ class Client():
                         data = file.read(PACKET_SIZE)
                         if data == b'':
                             break
-                        client.send(encryptMessage(data, False))
+                        client.send(data)
                         sleep(0.2)
                         response = client.recv(PACKET_SIZE)
-                        response = decryptMessage(response)
                         sleep(0.2)
                     except:
                         continue
@@ -315,11 +315,8 @@ class Client():
         
         return decrypted_message
     
-    def encryptMessage(self, message, encode = True):
-        if encode:
-            message_bytes = message.encode('utf-8')
-        else:
-            message_bytes = message
+    def encryptMessage(self, message):
+        message_bytes = message.encode('utf-8')
                 
         padder = padding.PKCS7(algorithms.AES.block_size).padder()
         padded_message = padder.update(message_bytes) + padder.finalize()
@@ -419,6 +416,8 @@ class Client():
                     box.configure(state='disabled')
                     
             except Exception as e:
+                print(e)
+                traceback.print_exc()
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
                 else:
