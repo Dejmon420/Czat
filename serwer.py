@@ -127,56 +127,61 @@ class Server:
         userid = ''
         active_room = self.rooms[0]
         active_room.users.append(client)
+        
+        while not client in logged_in:
+            message = client.recv(PACKET_SIZE).decode("utf-8")
+            print(message)
+            
+            if message.startswith("[REGISTER]"):
+                allow = True
+                try:
+                    with open("uid.txt", "r") as id_file:
+                        last_id = int(id_file.readline())
+                        last_id += 1
+                except:
+                    last_id = 1
+                
+                message = message.replace("[REGISTER]", "")
+                register_info = message.split()
+                message = str(last_id) + " " + message + "\n"
+                
+                for u in self.users:
+                    if register_info[0] == u["login"] or register_info[2] == u["username"]:
+                        allow = False
+                        break
+                        
+                if allow:
+                    with open("users.txt", "a") as users_file:
+                        users_file.write(message)
+                        
+                    with open("uid.txt", "w") as id_file:
+                        id_file.write(str(last_id))
+                        
+                    self.reloadUsers()
+            
+            elif message.startswith("[LOGIN]"):
+                print("logowanie")
+                send_error = True
+                message = message.replace("[LOGIN]", "")
+                message = message.split()
+                for user in self.users:
+                    if message[0] == user["login"]:
+                        if message[1] == user["password"]:
+                            username = user["username"]
+                            userid = user["id"]
+                            send_error = False
+                            self.logged_in.append(client)
+                            client.send(("[OK]{} {}".format(self.key, self.iv)).encode("utf-8"))
+                            print(f"client {username} logged in with id {userid}")
+                            break
+                if send_error:
+                    client.send("[ERROR]".encode("utf-8"))
+                    print("error")
+        
         while True:
             try:
                 message = client.recv(PACKET_SIZE)
                 print(message)
-                
-                if message.startswith("[REGISTER]"):
-                    allow = True
-                    try:
-                        with open("uid.txt", "r") as id_file:
-                            last_id = int(id_file.readline())
-                            last_id += 1
-                    except:
-                        last_id = 1
-                    
-                    message = message.replace("[REGISTER]", "")
-                    register_info = message.split()
-                    message = str(last_id) + " " + message + "\n"
-                    
-                    for u in self.users:
-                        if register_info[0] == u["login"] or register_info[2] == u["username"]:
-                            allow = False
-                            break
-                            
-                    if allow:
-                        with open("users.txt", "a") as users_file:
-                            users_file.write(message)
-                            
-                        with open("uid.txt", "w") as id_file:
-                            id_file.write(str(last_id))
-                            
-                        self.reloadUsers()
-                
-                elif message.startswith("[LOGIN]"):
-                    print("logowanie")
-                    send_error = True
-                    message = message.replace("[LOGIN]", "")
-                    message = message.split()
-                    for user in self.users:
-                        if message[0] == user["login"]:
-                            if message[1] == user["password"]:
-                                username = user["username"]
-                                userid = user["id"]
-                                send_error = False
-                                self.logged_in.append(client)
-                                client.send(("[OK]{} {}".format(self.key, self.iv)).encode("utf-8"))
-                                print(f"client {username} logged in with id {userid}")
-                                break
-                    if send_error:
-                        client.send("[ERROR]".encode("utf-8"))
-                        print("error")
                         
                 elif message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")

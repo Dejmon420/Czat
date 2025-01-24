@@ -149,7 +149,7 @@ class Client():
 
             
             info = "[REGISTER]" + login + " " + password + " " + username
-            client.send(info)
+            client.send(info.encode("utf-8"))
             
             self.logIn()
 
@@ -280,7 +280,7 @@ class Client():
             password = hashed.hexdigest()
             info = "[LOGIN]" + login + " " + password
             
-            client.send(info)
+            client.send(info.encode("utf-8"))
             response = client.recv(PACKET_SIZE).decode("utf-8")
             
             print(response)
