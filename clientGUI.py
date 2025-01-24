@@ -1,3 +1,6 @@
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.backends import default_backend
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -146,7 +149,7 @@ class Client():
 
             
             info = "[REGISTER]" + login + " " + password + " " + username
-            self.write(info)
+            client.send(info)
             
             self.logIn()
 
@@ -276,14 +279,19 @@ class Client():
              
             password = hashed.hexdigest()
             info = "[LOGIN]" + login + " " + password
-            self.write(info)
-        
+            
+            client.send(info)
             response = client.recv(PACKET_SIZE).decode("utf-8")
+            
+            print(response)
         
-            if response == "[OK]":
+            if response.startswith("[OK]"):
                 response = response.replace("[OK]", "")
                 response = response.split()
-                print(response)
+                self.key = eval(response[0])
+                self.iv = eval(response[1])
+                print(self.key)
+                print(self.iv)
                 self.mainApp()
             else:
                 return
@@ -306,12 +314,26 @@ class Client():
         Button(self.main_frame, text = "Zaloguj", command = lambda: self.sendLogInInfo(login, password)).grid(column = 1, row = 2, sticky = "swen")
         Button(self.main_frame, text = "Rejestracja", command = self.register).grid(column = 2, row = 2, sticky = "swen")
 
+    def encryptMessage(self, message):
+        message_bytes = message.encode('utf-8')
+                
+        padder = padding.PKCS7(algorithms.AES.block_size).padder()
+        padded_message = padder.update(message_bytes) + padder.finalize()
+        
+        cipher = Cipher(algorithms.AES(self.key), modes.CBC(self.iv), backend=default_backend())
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(padded_message) + encryptor.finalize()
+        
+        return ciphertext
+    
     #Funkcja wysyłająca wiadomość do serwera    
     def write(self, message = ""):
         if not self.block:
             try:
-                client.send(message.encode('utf-8'))
-            except:
+                message = self.encryptMessage(message)
+                client.send(message)
+            except Exception as e:
+                print(e)
                 print("Failed to connect to the server.")
                 client.close()
 

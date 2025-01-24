@@ -1,3 +1,6 @@
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.backends import default_backend
 import socket
 import threading
 import os
@@ -126,7 +129,7 @@ class Server:
         active_room.users.append(client)
         while True:
             try:
-                message = client.recv(PACKET_SIZE).decode('utf-8')
+                message = client.recv(PACKET_SIZE)
                 print(message)
                 
                 if message.startswith("[REGISTER]"):
