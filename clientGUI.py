@@ -32,6 +32,9 @@ class Client():
         self.filenames = []
         self.roomnames = []
         
+        self.key = ''
+        self.iv = ''
+        
         #Tworzenie aplikacji tkinter
         self.app = Tk()
         self.app.title("Wiadomości")
@@ -278,7 +281,9 @@ class Client():
             response = client.recv(PACKET_SIZE).decode("utf-8")
         
             if response == "[OK]":
-                self.user = response.replace("[OK]", "")
+                response = response.replace("[OK]", "")
+                response = response.split()
+                print(response)
                 self.mainApp()
             else:
                 return

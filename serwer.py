@@ -168,7 +168,7 @@ class Server:
                                 userid = user["id"]
                                 send_error = False
                                 self.logged_in.append(client)
-                                client.send("[OK]".encode("utf-8"))
+                                client.send(("[OK]{} {}".format(self.key, self.iv)).encode("utf-8"))
                                 print(f"client {username} logged in with id {userid}")
                                 break
                     if send_error:
