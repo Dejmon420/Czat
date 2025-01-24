@@ -46,7 +46,7 @@ def encryptMessage(message, encode = True):
     if encode:
         message_bytes = message.encode('utf-8')
     else:
-        message_bytes = message)
+        message_bytes = message
             
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_message = padder.update(message_bytes) + padder.finalize()
