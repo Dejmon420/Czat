@@ -112,7 +112,7 @@ class Server:
                     f.write("<{}> utworzony [{}]\n".format(room.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
                 for client in self.logged_in:
                     if client not in nobroad:
-                        client.send(("[ROOM]" + name).encode("utf-8"))
+                        client.send(encryptMessage("[ROOM]" + name))
                 print(self.rooms)
         except Exception as e:
             print(e)
