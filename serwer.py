@@ -235,7 +235,7 @@ class Server:
                                 if data:
                                     file.write(data)
                                     client.send(b'[OK]')
-                                    sleep(0.1)
+                                    sleep(0.2)
                                     
                                 else:
                                     break

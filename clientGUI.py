@@ -361,6 +361,7 @@ class Client():
                 print(message)
                 message = self.decryptMessage(message)
                 message = message.decode('utf-8')
+                print(message)
 
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
                     continue
