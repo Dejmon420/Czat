@@ -192,6 +192,7 @@ class Server:
                 message = client.recv(PACKET_SIZE)
                 print(message)
                 message = self.decryptMessage(message)
+                message = message.decode("utf-8")
                 print(message)
                         
                 if message.startswith("[ROOM]"):
