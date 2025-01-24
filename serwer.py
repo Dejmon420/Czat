@@ -42,8 +42,11 @@ def decryptMessage(ciphertext):
     
     return decrypted_message
 
-def encryptMessage(message):
-    message_bytes = message.encode('utf-8')
+def encryptMessage(message, encode = True):
+    if encode:
+        message_bytes = message.encode('utf-8')
+    else:
+        message_bytes = message)
             
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_message = padder.update(message_bytes) + padder.finalize()
@@ -213,13 +216,14 @@ class Server:
                         with open(filedir, "wb") as file:
                             while True:
                                 data = client.recv(PACKET_SIZE)
+                                data = decryptMessage(data)
                                 
                                 if data == b'END_FILE':
                                     break
                                 
                                 if data:
                                     file.write(data)
-                                    client.send(b'[OK]')
+                                    client.send(encryptMessage(b'[OK]', False))
                                     sleep(0.2)
                                     
                                 else:

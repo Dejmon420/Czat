@@ -73,9 +73,10 @@ class Client():
                         data = file.read(PACKET_SIZE)
                         if data == b'':
                             break
-                        client.send(data)
+                        client.send(encryptMessage(data, False))
                         sleep(0.2)
                         response = client.recv(PACKET_SIZE)
+                        response = decryptMessage(response)
                         sleep(0.2)
                     except:
                         continue
@@ -314,8 +315,11 @@ class Client():
         
         return decrypted_message
     
-    def encryptMessage(self, message):
-        message_bytes = message.encode('utf-8')
+    def encryptMessage(self, message, encode = True):
+        if encode:
+            message_bytes = message.encode('utf-8')
+        else:
+            message_bytes = message
                 
         padder = padding.PKCS7(algorithms.AES.block_size).padder()
         padded_message = padder.update(message_bytes) + padder.finalize()
@@ -393,7 +397,7 @@ class Client():
                                     self.load = True
                                     break
                                     
-                                elif data:)
+                                elif data:
                                     file.write(data)
                                     sleep(0.2)
                                     client.send(b'[OK]')
