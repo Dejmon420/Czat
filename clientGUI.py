@@ -416,8 +416,6 @@ class Client():
                     box.configure(state='disabled')
                     
             except Exception as e:
-                print(e)
-                traceback.print_exc()
                 if e.errno == errno.WSAEWOULDBLOCK:
                     continue
                 else:
