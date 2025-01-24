@@ -193,8 +193,12 @@ class Server:
         while True:
             try:
                 message = client.recv(PACKET_SIZE)
-                message = decryptMessage(message)
-                message = message.decode("utf-8")
+                
+                try:
+                    message = self.decryptMessage(message)
+                    message = message.decode('utf-8')
+                except ValueError as e:
+                    continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
