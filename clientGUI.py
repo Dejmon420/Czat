@@ -359,8 +359,17 @@ class Client():
                 message = client.recv(PACKET_SIZE)
                 sleep(0.1)
                 print(message)
-                message = self.decryptMessage(message)
-                message = message.decode('utf-8')
+
+                if not message:
+                    continue
+
+                try:
+                    message = self.decryptMessage(message)
+                    message = message.decode('utf-8')
+                except ValueError as e:
+                    print(f"Error while decrypting message: {e}")
+                    continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
+
                 print(message)
 
                 if message.startswith("[OK]") or message.startswith("[ERROR]"):
@@ -388,7 +397,7 @@ class Client():
                             self.block = True
                             while True:
                                 print("czekam na dane")
-                                sleep(0.1)
+                                sleep(0.2)
                                 data = client.recv(PACKET_SIZE)
                                 print(data)
                                 if data == b'':
@@ -404,7 +413,7 @@ class Client():
                                 elif data:
                                     print("otrzymano {}".format(data))
                                     file.write(data)
-                                    sleep(0.1)
+                                    sleep(0.2)
                                     client.send(b'[OK]')
                                     
                                 else:

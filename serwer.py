@@ -293,11 +293,11 @@ class Server:
                                     if data == b'':
                                         break
                                     client.send(data)
-                                    sleep(0.1)
+                                    sleep(0.2)
                                     print("sent data" + str(data))
                                     print("czekam na odpowiedz")
                                     response = client.recv(PACKET_SIZE)
-                                    sleep(0.1)
+                                    sleep(0.2)
                                     print("Got response" + str(response))
                                     if not response == b'[OK]':
                                         break
@@ -308,7 +308,6 @@ class Server:
                             
                         sleep(0.5)
                         client.send(b'END_FILE')
-                        sleep(0.1)
                         print("wyslano koniec")
                 
                     except Exception as e:
