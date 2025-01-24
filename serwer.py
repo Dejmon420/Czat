@@ -191,7 +191,7 @@ class Server:
             try:
                 message = client.recv(PACKET_SIZE)
                 print(message)
-                message = decryptMessage(message)
+                message = self.decryptMessage(message)
                 print(message)
                         
                 if message.startswith("[ROOM]"):
