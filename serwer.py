@@ -238,6 +238,8 @@ class Server:
                         sleep(0.1)
                     
                     except Exception as e:
+                        print(e)
+                        traceback.print_exc()
                         print(f"Wystąpił błąd podczas odbierania pliku: {e}")
                         
                     finally:
