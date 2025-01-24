@@ -183,7 +183,7 @@ class Server:
                 message = client.recv(PACKET_SIZE)
                 print(message)
                         
-                elif message.startswith("[ROOM]"):
+                if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
                     self.createRoom(message)
                                                
