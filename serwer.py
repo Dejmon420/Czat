@@ -195,6 +195,7 @@ class Server:
                 message = client.recv(PACKET_SIZE)
                 message = decryptMessage(message)
                 message = message.decode("utf-8")
+                print(message)
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")

@@ -357,6 +357,7 @@ class Client():
                 try:
                     message = self.decryptMessage(message)
                     message = message.decode('utf-8')
+                    print(message)
                 except ValueError as e:
                     continue  # Ignoruj wiadomości, które nie mogą zostać odszyfrowane
 
