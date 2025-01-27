@@ -139,8 +139,9 @@ class Client():
                     
             
             salt = "salt"
-            dataBase_password = password+salt
-            hashed = hashlib.md5(dataBase_password.encode())
+            dataBase_password = password + salt
+            
+            hashed = hashlib.sha256(dataBase_password.encode())
              
             password = hashed.hexdigest()
 
@@ -271,7 +272,7 @@ class Client():
         if login != "" and password != "":
             salt = "salt"
             dataBase_password = password+salt
-            hashed = hashlib.md5(dataBase_password.encode())
+            hashed = hashlib.sha256(dataBase_password.encode())
              
             password = hashed.hexdigest()
             info = "[LOGIN]" + login + " " + password

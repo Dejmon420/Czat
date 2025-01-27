@@ -8,11 +8,11 @@ from time import sleep
 import traceback
 from datetime import datetime
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 HOST = '192.168.1.16'
 PORT = 2000
 PACKET_SIZE = 4096
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 try:
     with open("server_config.txt", "r") as f:
         lines = f.readlines()
@@ -35,21 +35,23 @@ server.listen()
 
 def decryptMessage(ciphertext):
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    
     decryptor = cipher.decryptor()
     decrypted_padded_message = decryptor.update(ciphertext) + decryptor.finalize()
+    
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
     decrypted_message = unpadder.update(decrypted_padded_message) + unpadder.finalize()
     
     return decrypted_message
 
 def encryptMessage(message):
-
     message_bytes = message.encode('utf-8')
     
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_message = padder.update(message_bytes) + padder.finalize()
     
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(padded_message) + encryptor.finalize()
     
