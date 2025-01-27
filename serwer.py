@@ -26,6 +26,7 @@ except Exception as e:
 
 key = os.urandom(32)
 iv = os.urandom(16)
+print("Wygenerowano parę (klucz AES, wektor IV): ({}, {})".format(key, iv))
  
 nobroad = []
     
@@ -195,7 +196,6 @@ class Server:
                 message = client.recv(PACKET_SIZE)
                 message = decryptMessage(message)
                 message = message.decode("utf-8")
-                print(message)
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
