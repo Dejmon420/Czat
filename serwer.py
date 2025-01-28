@@ -238,6 +238,7 @@ class Server:
                         if filename not in active_room.files:
                             sleep(0.2)
                             active_room.files.append(filename)
+                            print("odebrano plik {} prawidłowo".format(filename))
                             active_room.broadcast(("[LIST]" + filename), client, username, False)
                         
                         active_room.broadcast(filename, client, username)
