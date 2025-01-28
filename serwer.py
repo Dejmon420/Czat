@@ -149,6 +149,7 @@ class Server:
             
             if message.startswith("[REGISTER]"):
                 allow = True
+                print(message)
                 try:
                     with open("uid.txt", "r") as id_file:
                         last_id = int(id_file.readline())
@@ -173,9 +174,13 @@ class Server:
                         id_file.write(str(last_id))
                         
                     self.reloadUsers()
+                    print("zarejestrowano użytkownika")
+                else:
+                    print("błąd przy rejestracji użytkownika")
             
             elif message.startswith("[LOGIN]"):
                 send_error = True
+                print(message)
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
                 for user in self.users:
