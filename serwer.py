@@ -149,7 +149,6 @@ class Server:
             
             if message.startswith("[REGISTER]"):
                 allow = True
-                print(message)
                 try:
                     with open("uid.txt", "r") as id_file:
                         last_id = int(id_file.readline())
@@ -180,7 +179,6 @@ class Server:
             
             elif message.startswith("[LOGIN]"):
                 send_error = True
-                print(message)
                 message = message.replace("[LOGIN]", "")
                 message = message.split()
                 for user in self.users:
@@ -198,9 +196,11 @@ class Server:
         
         while True:
             try:
+                print("Wiadomość zaszyfrowana: {}".format(message))
                 message = client.recv(PACKET_SIZE)
                 message = decryptMessage(message)
                 message = message.decode("utf-8")
+                print("Wiadomość odszyfrowana: {}".format(message))
                         
                 if message.startswith("[ROOM]"):
                     message = message.replace("[ROOM]", "")
